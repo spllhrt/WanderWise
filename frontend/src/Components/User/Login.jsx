@@ -39,7 +39,28 @@ const Login = () => {
         }
     };
 
-    
+    const handleGoogleLogin = async (response) => {
+        try {
+            const { credential } = response;
+            const config = { headers: { 'Content-Type': 'application/json' } };
+
+            // Send the Google token to the backend for verification
+            const { data } = await axios.post('http://localhost:5000/api/auth/google-login', { token: credential }, config);
+
+            // Redirect based on user role
+            if (data.user.role === 'user') {
+                authenticate(data, () => navigate('/user-dashboard')); // Redirect to /user-dashboard for role `user`
+            } else if (data.user.role === 'admin') {
+                authenticate(data, () => navigate('/admin-dashboard')); // Redirect to /admin-dashboard for role `admin`
+            } else {
+                toast.error("You don't have the necessary privileges", { position: 'bottom-right' });
+                navigate('/'); // Redirect to home for any other role
+            }
+        } catch (error) {
+            toast.error("Google login failed", { position: 'bottom-right' });
+        }
+    };
+
     const submitHandler = (e) => {
         e.preventDefault();
         login(email, password);
@@ -89,7 +110,7 @@ const Login = () => {
                                 <div className="my-3">
                                     <h6>Or Continue with Google</h6>
                                     <GoogleLogin
-                                        onSuccess={response => console.log('Google login success:', response)}
+                                        onSuccess={handleGoogleLogin}
                                         onError={() => toast.error("Google login failed", { position: 'bottom-right' })}
                                     />
                                 </div>

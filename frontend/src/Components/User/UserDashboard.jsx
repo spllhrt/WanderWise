@@ -88,7 +88,7 @@ const UserDashboard = () => {
                     <Typography variant="h6" sx={{ flexGrow: 1 }}>
                         User Dashboard
                     </Typography>
-                    <Button color="inherit" onClick={() => navigate('/dashboard')}>Dashboard</Button>
+                    <Button color="inherit" onClick={() => navigate('/user-dashboard')}>Dashboard</Button>
                     <Button color="inherit" onClick={() => navigate('/booking-history')}>Booking History</Button>
                     <Button color="inherit" onClick={handleLogout}>Logout</Button>
                 </Toolbar>

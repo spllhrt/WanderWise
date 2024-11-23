@@ -8,8 +8,6 @@ const Register = () => {
         name: '',
         email: '',
         password: '',
-        role: '', // Add role to state
-        image: null, // Add image to state
     });
 
     const { name, email, password, role, image } = user;
@@ -31,8 +29,6 @@ const Register = () => {
         userData.append('name', name);
         userData.append('email', email);
         userData.append('password', password);
-        userData.append('role', role);  // Append the role
-        if (image) userData.append('image', image);  // Append the image if provided
 
         register(userData);
     };
@@ -50,11 +46,11 @@ const Register = () => {
             console.log(data.user);
 
             setLoading(false);
-            setUser({ name: '', email: '', password: '', role: '', image: null });
+            setUser({ name: '', email: '', password: '' });
             navigate('/'); // Redirect to login or home after registration
         } catch (error) {
             setLoading(false);
-            setUser({ name: '', email: '', password: '', role: '', image: null });
+            setUser({ name: '', email: '', password: ''});
             setError(error.response?.data?.error || 'An error occurred');
             console.log(error.response?.data?.error || error);
         }
@@ -101,32 +97,6 @@ const Register = () => {
                                 name='password'
                                 value={password}
                                 onChange={(e) => setUser({ ...user, password: e.target.value })}
-                            />
-                        </div>
-
-                        {/* Role Selection */}
-                        <div className="form-group">
-                            <label htmlFor="role_field">Role</label>
-                            <select
-                                id="role_field"
-                                className="form-control"
-                                value={role}
-                                onChange={(e) => setUser({ ...user, role: e.target.value })}
-                            >
-                                <option value="">Select Role</option>
-                                <option value="user">User</option>
-                            </select>
-                        </div>
-
-                        {/* Image Upload */}
-                        <div className="form-group">
-                            <label htmlFor="image_field">Profile Image</label>
-                            <input
-                                type="file"
-                                id="image_field"
-                                className="form-control"
-                                name='image'
-                                onChange={(e) => setUser({ ...user, image: e.target.files[0] })}
                             />
                         </div>
 

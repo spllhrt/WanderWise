@@ -4,6 +4,7 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import MUIDataTable from "mui-datatables";
+import { getUser, logout } from '../../utils/helpers';
 import MetaData from '../Layout/MetaData';
 
 const Packages = () => {
@@ -23,10 +24,12 @@ const Packages = () => {
     const [updateMode, setUpdateMode] = useState(false);
     const [modalShow, setModalShow] = useState(false);
     const navigate = useNavigate();
+    const user = getUser();
 
     useEffect(() => {
+        const user = getUser(); // Fetch user data here
         if (!user || user.role !== 'admin') {
-            navigate('/login');
+            navigate('/login'); // Redirect to login if not an admin
         }
         const fetchPackages = async () => {
             try {
@@ -36,7 +39,7 @@ const Packages = () => {
                 toast.error('Error loading packages');
             }
         };
-
+    
         const fetchCategories = async () => {
             try {
                 const res = await axios.get('http://localhost:5000/api/admin/categories');
@@ -45,10 +48,11 @@ const Packages = () => {
                 toast.error('Error loading categories');
             }
         };
-
+    
         fetchPackages();
         fetchCategories();
-    }, []);
+    }, [navigate]); // Remove `user` from dependencies, since it's already fetched inside the useEffect
+    
 
     const handleNewPackage = async (e) => {
         e.preventDefault();

@@ -4,6 +4,7 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import MUIDataTable from "mui-datatables";
+import { getUser, logout } from '../../utils/helpers';
 import MetaData from '../Layout/MetaData';
 
 const Categories = () => {
@@ -16,10 +17,16 @@ const Categories = () => {
     const navigate = useNavigate();
     const { id } = useParams();
 
+    const user = getUser(); // Assuming getUser fetches the logged-in user
+
     useEffect(() => {
+        // Check if the user is logged in and has admin role
         if (!user || user.role !== 'admin') {
             navigate('/login');
+            return;
         }
+
+        // Fetch categories if the user is authenticated and is an admin
         const fetchCategories = async () => {
             try {
                 const res = await axios.get('http://localhost:5000/api/admin/categories');
@@ -28,8 +35,9 @@ const Categories = () => {
                 toast.error('Error loading categories');
             }
         };
+
         fetchCategories();
-    }, []);
+    }, [user, navigate]);
 
     const handleNewCategory = async (e) => {
         e.preventDefault();
@@ -79,7 +87,6 @@ const Categories = () => {
             toast.error('Error updating category');
         }
     };
-    
 
     const handleDeleteCategories = async (rowsDeleted) => {
         try {
@@ -98,7 +105,6 @@ const Categories = () => {
             toast.error('Error deleting categories');
         }
     };
-    
 
     const handleEditCategory = (id) => {
         const selectedCategory = categories.find(cat => cat._id === id);
@@ -136,9 +142,7 @@ const Categories = () => {
                 )
             }
         }
-        
     ];
-    
 
     const options = {
         filter: false,

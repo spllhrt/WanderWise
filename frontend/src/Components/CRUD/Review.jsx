@@ -4,6 +4,7 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import MetaData from '../Layout/MetaData';
+import { getUser, logout } from '../../utils/helpers';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 const Reviews = () => {
@@ -16,10 +17,16 @@ const Reviews = () => {
     const { id } = useParams();
     const navigate = useNavigate();
 
+    // Check if the user is logged in and has the 'admin' role
+    const user = getUser();
     useEffect(() => {
         if (!user || user.role !== 'admin') {
+            toast.error('You must be logged in as an admin to view reviews');
             navigate('/login');
         }
+    }, [user, navigate]);
+
+    useEffect(() => {
         const fetchReviews = async () => {
             try {
                 const res = await axios.get('http://localhost:5000/api/admin/reviews');
@@ -80,8 +87,6 @@ const Reviews = () => {
                         <tr>
                             <th scope="col">User ID</th>
                             <th scope="col">Comments</th>
-                            <th scope="col">Package</th>
-                            <th scope="col">Ratings</th>
                             <th scope="col">Image</th>
                             <th scope="col">Actions</th>
                         </tr>
@@ -91,8 +96,6 @@ const Reviews = () => {
                             <tr key={rev._id}>
                                 <td>{rev.userID}</td>
                                 <td>{rev.comments}</td>
-                                <td>{rev.packageId}</td> {/* Added Package ID column */}
-                                <td>{rev.ratings}</td> {/* Added Ratings column */}
                                 <td>
                                     {rev.images[0] && (
                                         <img src={rev.images[0].url} alt="Review" style={{ width: '100px', height: '100px' }} />

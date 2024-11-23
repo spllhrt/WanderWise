@@ -5,6 +5,7 @@ import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { getUser, logout } from '../../utils/helpers'; // Ensure logout helper is imported
 import MetaData from '../Layout/MetaData';
+import { Grid, Card, CardContent, Typography, Button, Box } from '@mui/material';
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
@@ -60,38 +61,74 @@ const AdminDashboard = () => {
     return (
         <>
             <MetaData title="Admin Dashboard" />
-            <div className="dashboard-container">
-                <h1 className="dashboard-title">Admin Dashboard</h1>
-                <p>Welcome, {user?.name || 'Admin'} (Role: {user?.role})</p>
+            <Box sx={{ padding: '2rem' }}>
+                <Typography variant="h4" gutterBottom>Admin Dashboard</Typography>
+                <Typography variant="h6" color="textSecondary">
+                    Welcome, {user?.name || 'Admin'} (Role: {user?.role})
+                </Typography>
 
-                <div className="stats-grid">
-                    <Link to="/package" className="stat-card">
-                        <img src="images/package.png" alt="Packages" className="stat-image" />
-                        <h3>Total Packages</h3>
-                        <p>{stats.totalPackages}</p>
-                    </Link>
-                    <Link to="/user" className="stat-card">
-                        <img src="images/user.png" alt="Users" className="stat-image" />
-                        <h3>Total Users</h3>
-                        <p>{stats.totalUsers}</p>
-                    </Link>
-                    <Link to="/review" className="stat-card">
-                        <img src="images/review.png" alt="Reviews" className="stat-image" />
-                        <h3>Total Reviews</h3>
-                        <p>{stats.totalReviews}</p>
-                    </Link>
-                    <Link to="/booking" className="stat-card">
-                        <img src="images/booking.png" alt="Bookings" className="stat-image" />
-                        <h3>Total Bookings</h3>
-                        <p>{stats.totalBookings}</p>
-                    </Link>
-                </div>
+                <Grid container spacing={3} sx={{ marginTop: '2rem' }}>
+                    <Grid item xs={12} sm={6} md={3}>
+                        <Card>
+                            <CardContent sx={{ textAlign: 'center' }}>
+                                <img src="images/package.png" alt="Packages" style={{ width: '60px', height: '60px' }} />
+                                <Typography variant="h6" sx={{ marginTop: '1rem' }}>Total Packages</Typography>
+                                <Typography variant="h5" color="primary">{stats.totalPackages}</Typography>
+                            </CardContent>
+                        </Card>
+                    </Grid>
+                    <Grid item xs={12} sm={6} md={3}>
+                        <Card>
+                            <CardContent sx={{ textAlign: 'center' }}>
+                                <img src="images/user.png" alt="Users" style={{ width: '60px', height: '60px' }} />
+                                <Typography variant="h6" sx={{ marginTop: '1rem' }}>Total Users</Typography>
+                                <Typography variant="h5" color="primary">{stats.totalUsers}</Typography>
+                            </CardContent>
+                        </Card>
+                    </Grid>
+                    <Grid item xs={12} sm={6} md={3}>
+                        <Card>
+                            <CardContent sx={{ textAlign: 'center' }}>
+                                <img src="images/review.png" alt="Reviews" style={{ width: '60px', height: '60px' }} />
+                                <Typography variant="h6" sx={{ marginTop: '1rem' }}>Total Reviews</Typography>
+                                <Typography variant="h5" color="primary">{stats.totalReviews}</Typography>
+                            </CardContent>
+                        </Card>
+                    </Grid>
+                    <Grid item xs={12} sm={6} md={3}>
+                        <Card>
+                            <CardContent sx={{ textAlign: 'center' }}>
+                                <img src="images/booking.png" alt="Bookings" style={{ width: '60px', height: '60px' }} />
+                                <Typography variant="h6" sx={{ marginTop: '1rem' }}>Total Bookings</Typography>
+                                <Typography variant="h5" color="primary">{stats.totalBookings}</Typography>
+                            </CardContent>
+                        </Card>
+                    </Grid>
+                </Grid>
 
                 {/* Logout Button */}
-                <button className="logout-button" onClick={handleLogout}>
-                    Logout
-                </button>
-            </div>
+                <Box sx={{ textAlign: 'center', marginTop: '2rem' }}>
+                    <Button variant="contained" color="secondary" onClick={handleLogout}>
+                        Logout
+                    </Button>
+                </Box>
+
+                {/* Action Buttons */}
+                <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: '2rem' }}>
+                    <Button variant="contained" color="primary" sx={{ margin: '0 1rem' }} component={Link} to="/package">
+                        Explore Packages
+                    </Button>
+                    <Button variant="contained" color="secondary" sx={{ margin: '0 1rem' }} component={Link} to="/category">
+                        Browse Categories
+                    </Button>
+                    <Button variant="contained" color="info" sx={{ margin: '0 1rem' }} component={Link} to="/user">
+                        Meet Our Users
+                    </Button>
+                    <Button variant="contained" color="warning" sx={{ margin: '0 1rem' }} component={Link} to="/review">
+                        View Reviews
+                    </Button>
+                </Box>
+            </Box>
         </>
     );
 };

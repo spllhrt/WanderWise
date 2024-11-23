@@ -3,6 +3,7 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import MetaData from '../Layout/MetaData';
+import { getUser, logout } from '../../utils/helpers';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 const Users = () => {
@@ -16,9 +17,6 @@ const Users = () => {
     const [viewMode, setViewMode] = useState(false);
 
     useEffect(() => {
-        if (!user || user.role !== 'admin') {
-            navigate('/login');
-        }
         const fetchUsers = async () => {
             try {
                 const res = await axios.get('http://localhost:5000/api/auth/admin/users');

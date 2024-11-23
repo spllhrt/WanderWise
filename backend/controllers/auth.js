@@ -6,20 +6,15 @@ const multer = require('../utils/multer');
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const registerUser = async (req, res) => {
-    const { name, email, password, role } = req.body;
-    const profileImage = req.file ? req.file.filename : null; 
+    const { name, email, password } = req.body;
 
-    // Check if the user is attempting to register as an admin
-    if (role && role === 'admin') {
-        return res.status(403).json({ error: 'Admin role cannot be assigned during registration' });
-    }
 
     if (!name || !email || !password) {
         return res.status(400).json({ error: 'Please enter email and password' });
     }
 
     try {
-        const user = await User.create({ name, email, password, profileImage, role: 'user' }); // Default role is user
+        const user = await User.create({ name, email, password, role: 'user' }); // Default role is user
         sendToken(user, 201, res);
     } catch (error) {
         if (error instanceof multer.MulterError) {
@@ -51,33 +46,41 @@ const loginUser = async (req, res) => {
 };
 
 // Google Login
+// Google Login
 const googleLogin = async (req, res) => {
     const { token } = req.body;
+
     try {
+        // Verify the Google ID token
         const ticket = await client.verifyIdToken({
             idToken: token,
-            audience: process.env.GOOGLE_CLIENT_ID,
+            audience: process.env.GOOGLE_CLIENT_ID, // This should match your Google Client ID
         });
+
         const payload = ticket.getPayload();
         const { email, name, picture } = payload;
 
         let user = await User.findOne({ email });
+
         if (!user) {
+            // If user doesn't exist, create a new user
             user = new User({
-                username: name || 'Anonymous',
+                name: name || 'Anonymous',
                 email,
-                password: '',
+                password: '', // No password needed for Google login
                 profileImage: picture || 'default_image_url',
             });
             await user.save();
         }
 
-        sendToken(user, 200, res);
+        // Send back user data (role, profile, etc.)
+        sendToken(user, 200, res);  // Generate JWT and send response
     } catch (error) {
-        console.error('Google login error:', error);
         res.status(500).json({ message: 'Google login failed. Please try again later.' });
     }
 };
+
+
 
 // Get all users (Admin)
 const allUsers = async (req, res) => {
