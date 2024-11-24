@@ -18,7 +18,7 @@ import {
     Rating,
     Box
 } from '@mui/material';
-import Filter from 'bad-words'; // Import bad-words package
+
 
 const BookingHistory = () => {
     const [bookings, setBookings] = useState([]);
@@ -34,17 +34,17 @@ const BookingHistory = () => {
     });
     const navigate = useNavigate();
 
-    // Initialize the bad words filter
-    const filter = new Filter();
 
     useEffect(() => {
         const loggedInUser = getUser();
+
 
         if (!loggedInUser || !loggedInUser._id) {
             alert('Please log in to view your booking history.');
             navigate('/login');
             return;
         }
+
 
         const fetchBookingHistory = async () => {
             try {
@@ -57,7 +57,9 @@ const BookingHistory = () => {
                     body: JSON.stringify({ userId: loggedInUser._id }),
                 });
 
+
                 const data = await response.json();
+
 
                 if (response.ok) {
                     setBookings(data.bookings || []);
@@ -72,14 +74,18 @@ const BookingHistory = () => {
             }
         };
 
+
         fetchBookingHistory();
     }, [navigate]);
+
 
     const cancelBooking = async (bookingId) => {
         const reason = prompt('Please provide a reason for cancellation:');
         if (!reason) return;
 
+
         setCancelReason(reason);
+
 
         try {
             const response = await fetch(`http://localhost:5000/api/admin/booking/${bookingId}`, {
@@ -90,7 +96,9 @@ const BookingHistory = () => {
                 body: JSON.stringify({ reason }),
             });
 
+
             const data = await response.json();
+
 
             if (response.ok) {
                 setBookings((prev) => prev.filter((booking) => booking._id !== bookingId));
@@ -104,6 +112,7 @@ const BookingHistory = () => {
         }
     };
 
+
     const checkoutBooking = async (bookingId) => {
         try {
             const response = await fetch(`http://localhost:5000/api/booking/checkout/${bookingId}`, {
@@ -114,13 +123,16 @@ const BookingHistory = () => {
                 },
             });
 
+
             const data = await response.json();
+
 
             if (response.ok) {
                 const updatedBookings = bookings.map((booking) =>
                     booking._id === bookingId ? { ...booking, bookingStatus: 'success' } : booking
                 );
                 setBookings(updatedBookings);
+
 
                 const updatedBooking = updatedBookings.find((b) => b._id === bookingId);
                 if (updatedBooking) {
@@ -146,26 +158,27 @@ const BookingHistory = () => {
         }
     };
 
+
     const handleReviewOpen = (bookingId, packageId) => {
         setReviewDetails({ bookingId, packageId, rating: 0, comments: '' });
         setOpenReviewDialog(true);
     };
 
+
     const handleReviewClose = () => {
         setOpenReviewDialog(false);
     };
 
+
     const handleReviewSubmit = async () => {
         const { bookingId, packageId, rating, comments } = reviewDetails;
-
+       
         if (!rating || !comments) {
             alert('Please provide both a rating and a comment.');
             return;
         }
-
-        // Filter bad words in comments
-        const filteredComment = filter.clean(comments);
-
+    
+        // You can send the comment to the backend to check for bad words.
         try {
             const response = await fetch(`http://localhost:5000/api/review/new`, {
                 method: 'POST',
@@ -176,26 +189,30 @@ const BookingHistory = () => {
                 body: JSON.stringify({
                     userID: getUser()._id,
                     packageId,
-                    comments: filteredComment, // Send filtered comment
+                    comments,
                     ratings: rating,  // Ensure 'ratings' is a number
                 }),
             });
-
+    
             const data = await response.json();
-
+    
             if (response.ok) {
                 alert('Review submitted successfully.');
                 setOpenReviewDialog(false);
             } else {
-                alert(`Failed to submit review: ${data.message}`);
+                // Show the message from backend if bad words were detected
+                alert(data.message || 'Failed to submit review.');
             }
         } catch (error) {
             console.error('Error submitting review:', error);
             alert('Error submitting the review.');
         }
     };
+    
+
 
     if (loading) return <CircularProgress />;
+
 
     return (
         <>
@@ -210,6 +227,7 @@ const BookingHistory = () => {
                     <Button color="inherit" onClick={() => navigate('/profile')}>Profile</Button>
                 </Toolbar>
             </AppBar>
+
 
             <Box sx={{ padding: '20px', backgroundColor: '#f4f4f9' }}>
                 <Typography variant="h4" align="center" sx={{ marginBottom: '30px', fontFamily: 'Roboto, sans-serif', fontWeight: '500' }}>
@@ -289,6 +307,7 @@ const BookingHistory = () => {
                 )}
             </Box>
 
+
             {/* Ticket Confirmation Dialog */}
             <Dialog open={ticketReady} onClose={() => setTicketReady(false)}>
                 <DialogTitle>Booking Confirmation</DialogTitle>
@@ -316,6 +335,7 @@ const BookingHistory = () => {
                     </Button>
                 </DialogActions>
             </Dialog>
+
 
             {/* Review Dialog */}
             <Dialog open={openReviewDialog} onClose={handleReviewClose}>
@@ -352,4 +372,7 @@ const BookingHistory = () => {
     );
 };
 
+
 export default BookingHistory;
+
+
