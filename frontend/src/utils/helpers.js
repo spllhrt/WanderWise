@@ -24,13 +24,20 @@ export const getToken = () => {
 // Retrieve user data from session storage
 export const getUser = () => {
     if (typeof window !== 'undefined') {
+        // First, check sessionStorage for user data
         if (sessionStorage.getItem('user')) {
             return JSON.parse(sessionStorage.getItem('user'));
+        }
+        // If not found in sessionStorage, fall back to localStorage
+        else if (localStorage.getItem('user')) {
+            return JSON.parse(localStorage.getItem('user'));
         } else {
             return false;
         }
     }
+    return null; // Explicitly handle server-side rendering scenarios
 };
+
 
 // Logout function: Remove session storage data and trigger a callback
 export const logout = (next) => {
@@ -52,3 +59,5 @@ export const successMsg = (message = '') =>
     toast.success(message, {
         position: 'bottom-right',
     });
+
+    

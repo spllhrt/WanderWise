@@ -289,7 +289,7 @@ const BookingPage = () => {
                                                 src={img.url}
                                                 alt={`Review Image ${idx}`}
                                                 style={{ maxHeight: '300px', objectFit: 'cover' }}
-                                            />
+                                            />y
                                         </div>
                                     ))}
                                 </Carousel>

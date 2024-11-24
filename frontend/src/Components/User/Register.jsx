@@ -10,7 +10,7 @@ const Register = () => {
         password: '',
     });
 
-    const { name, email, password, role, image } = user;
+    const { name, email, password } = user;
 
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -32,29 +32,31 @@ const Register = () => {
 
         register(userData);
     };
-
     const register = async (userData) => {
         try {
-            const config = {
-                headers: {
-                    'Content-Type': 'multipart/form-data', // Important to specify this for file uploads
-                },
-            };
-
             setLoading(true);
-            const { data } = await axios.post('http://localhost:5000/api/auth/register', userData, config);
+            const { data } = await axios.post(
+                'http://localhost:5000/api/auth/register', 
+                userData, // Send as JSON directly
+                {
+                    headers: {
+                        'Content-Type': 'application/json', // Set content type to JSON
+                    },
+                }
+            );
             console.log(data.user);
-
+    
             setLoading(false);
             setUser({ name: '', email: '', password: '' });
-            navigate('/'); // Redirect to login or home after registration
+            navigate('/login'); // Redirect to login or home after registration
         } catch (error) {
             setLoading(false);
-            setUser({ name: '', email: '', password: ''});
+            setUser({ name: '', email: '', password: '' });
             setError(error.response?.data?.error || 'An error occurred');
             console.log(error.response?.data?.error || error);
         }
     };
+    
 
     return (
         <>

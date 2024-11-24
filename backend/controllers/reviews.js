@@ -84,22 +84,30 @@ exports.getSingleReview = async (req, res) => {
 // Create new review
 exports.createReview = async (req, res) => {
     try {
-        const review = await Review.create(req.body);
+        const { userID, packageId, comments, ratings } = req.body;
 
-        return res.status(201).json({
-            success: true,
-            review,
+        if (!ratings || !comments) {
+            return res.status(400).json({ message: 'Rating and comments are required' });
+        }
+
+        const newReview = new Review({
+            userID,
+            packageId,
+            comments,
+            ratings, // Save the ratings field to the database
+            images: [], // You can handle images later if needed
         });
+
+        await newReview.save();
+
+        res.status(200).json({ message: 'Review submitted successfully', review: newReview });
     } catch (error) {
-        console.error('Error creating review:', error);
-        return res.status(500).json({
-            success: false,
-            message: 'Error creating review',
-            error: error.message,
-        });
+        console.error('Error saving review:', error);
+        res.status(500).json({ message: 'Server error' });
     }
 };
 
+  
 // Update a review
 exports.updateReview = async (req, res) => {
     try {

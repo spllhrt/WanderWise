@@ -139,23 +139,22 @@ const BookingHistory = () => {
         }
     };
 
-    const handleReviewOpen = (bookingId) => {
-        setReviewDetails({ bookingId, rating: 0, comments: '' });
+    const handleReviewOpen = (bookingId, packageId) => {
+        setReviewDetails({ bookingId, packageId, rating: 0, comments: '' });
         setOpenReviewDialog(true);
     };
 
     const handleReviewClose = () => {
         setOpenReviewDialog(false);
     };
-
     const handleReviewSubmit = async () => {
-        const { bookingId, rating, comments } = reviewDetails;
-
+        const { bookingId, packageId, rating, comments } = reviewDetails;
+    
         if (!rating || !comments) {
             alert('Please provide both a rating and a comment.');
             return;
         }
-
+    
         try {
             const response = await fetch(`http://localhost:5000/api/review/new`, {
                 method: 'POST',
@@ -163,11 +162,16 @@ const BookingHistory = () => {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`,
                 },
-                body: JSON.stringify({ userID: getUser()._id, packageId: bookingId, comments, ratings: rating }),
+                body: JSON.stringify({
+                    userID: getUser()._id,
+                    packageId,
+                    comments,
+                    ratings: rating,  // Ensure 'ratings' is a number
+                }),
             });
-
+    
             const data = await response.json();
-
+    
             if (response.ok) {
                 alert('Review submitted successfully.');
                 setOpenReviewDialog(false);
@@ -179,6 +183,7 @@ const BookingHistory = () => {
             alert('Error submitting the review.');
         }
     };
+    
 
     if (loading) return <CircularProgress />;
 
@@ -201,15 +206,6 @@ const BookingHistory = () => {
                                         Status: {booking.bookingStatus}
                                     </Typography>
                                     <div>
-                                        {booking.bookingStatus === 'pending' && (
-                                            <Button
-                                                variant="contained"
-                                                color="primary"
-                                                onClick={() => checkoutBooking(booking._id)}
-                                            >
-                                                Checkout
-                                            </Button>
-                                        )}
                                         {booking.bookingStatus === 'success' && (
                                             <div>
                                                 <Button
@@ -234,10 +230,11 @@ const BookingHistory = () => {
                                                 <Button
                                                     variant="contained"
                                                     color="secondary"
-                                                    onClick={() => handleReviewOpen(booking._id)}
+                                                    onClick={() => handleReviewOpen(booking._id, booking.packageId._id)}
                                                 >
                                                     Leave a Review
                                                 </Button>
+
                                             </div>
                                         )}
                                         {booking.bookingStatus !== 'success' && (
@@ -263,10 +260,11 @@ const BookingHistory = () => {
             <Dialog open={openReviewDialog} onClose={handleReviewClose}>
                 <DialogTitle>Leave a Review</DialogTitle>
                 <DialogContent>
-                    <Rating
-                        value={reviewDetails.rating}
-                        onChange={(event, newValue) => setReviewDetails({ ...reviewDetails, rating: newValue })}
-                    />
+                <Rating
+                    value={reviewDetails.rating}
+                    onChange={(event, newValue) => setReviewDetails({ ...reviewDetails, rating: newValue })}
+                />
+
                     <TextField
                         label="Comments"
                         multiline

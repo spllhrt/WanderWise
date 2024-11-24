@@ -11,8 +11,7 @@ import Category from './Components/CRUD/Category';
 import Package from './Components/CRUD/Package';
 import User from './Components/CRUD/User';
 import Review from './Components/CRUD/Review';
-import Home from './Components/Home';
-import Navbar from './Components/Navbar/navbar';
+import Profile from './Components/User/profile';
 import Dashboard from './Components/Dashboard/dashboard';
 import UserDashboard from './Components/User/UserDashboard';
 import AdminDashboard from './Components/Admin/AdminDashboard';
@@ -33,12 +32,14 @@ function App() {
           <Route path="/package" element={<Package />} exact="true" />
           <Route path="/user" element={<User />} exact="true" />
           <Route path="/review" element={<Review />} exact="true" />
-          <Route path="/" element={<Home />} exact="true" />
+          <Route path="/" element={<Login />} exact="true" />
           <Route path="/dashboard" element={<Dashboard />} exact="true" />
           <Route path="/user-dashboard" element={<UserDashboard />} exact />
           <Route path="/admin-dashboard" element={<AdminDashboard />} exact />
           <Route path="/booking" element={<BookingPage />} />
           <Route path="/booking-history" element={<BookingHistory />} />
+          <Route path="/profile" element={<Profile />} exact />
+
         </Routes>
       </Router>
       <ToastContainer />

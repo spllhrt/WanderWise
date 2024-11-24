@@ -19,8 +19,6 @@ const wishlistRoutes = require('./routes/wishlist');
 
 
 const app = express();
-app.use(express.json());
-
 
 
 // MongoDB connection URI
@@ -34,9 +32,17 @@ mongoose.connect(uri)
 
 // CORS configuration
 app.use(cors({
-  origin: 'http://localhost:5173', 
-  methods: ['GET', 'POST', 'PUT','PATCH', 'DELETE'],
+  origin: ['http://localhost:5173', 'http://localhost:3000'], // Allow multiple origins
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization'], // Include 'Authorization' for OAuth
 }));
+
+app.use((req, res, next) => {
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups'); // Allow popups if needed
+  next();
+});
+
 
 
 // Cloudinary configuration
