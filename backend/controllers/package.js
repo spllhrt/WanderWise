@@ -154,7 +154,6 @@ exports.updatePackage = async (req, res) => {
         if (req.body.name) package.name = req.body.name;
         if (req.body.description) package.description = req.body.description;
         if (req.body.price) package.price = req.body.price;
-        if (req.body.locations) package.locations = req.body.locations;
         if (req.body.features) package.features = req.body.features;
         if (req.body.itinerary) package.itinerary = req.body.itinerary;
         if (req.body.status) package.status = req.body.status;

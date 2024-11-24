@@ -146,14 +146,14 @@ const BookingPage = () => {
     const totalPrice = packageDetails?.price * bookingData.numberOfTravelers;
 
     return (
-        <Container>
+        <Container sx={{ padding: { xs: '0 16px', sm: '0 24px', md: '0 32px' } }}>
             {/* Header Section */}
             <Box sx={{ textAlign: 'center', marginBottom: 3 }}>
                 <Typography variant="h3" gutterBottom>
-                    {packageDetails.name}
+                    {packageDetails?.name}
                 </Typography>
                 <Typography variant="h6" color="textSecondary">
-                    {packageDetails.description}
+                    {packageDetails?.description}
                 </Typography>
             </Box>
 
@@ -161,12 +161,12 @@ const BookingPage = () => {
             <Grid container spacing={4}>
                 <Grid item xs={12} md={6}>
                     <Carousel>
-                        {packageDetails.images?.map((img, idx) => (
+                        {packageDetails?.images?.map((img, idx) => (
                             <div key={idx}>
                                 <img
                                     src={img.url}
                                     alt={`Package Image ${idx}`}
-                                    style={{ maxHeight: '400px', objectFit: 'cover' }}
+                                    style={{ maxHeight: '400px', objectFit: 'cover', width: '100%' }}
                                 />
                             </div>
                         ))}
@@ -176,13 +176,10 @@ const BookingPage = () => {
                 <Grid item xs={12} md={6}>
                     <Paper elevation={3} sx={{ padding: 3, marginBottom: 3 }}>
                         <Typography variant="h5">
-                            Price per Traveler: ${packageDetails.price}
+                            Price per Traveler: ${packageDetails?.price}
                         </Typography>
                         <Typography variant="h6" sx={{ marginTop: 2 }}>
                             Total Price: ${totalPrice.toFixed(2)}
-                        </Typography>
-                        <Typography variant="body1" sx={{ marginTop: 2 }}>
-                            <strong>Locations:</strong> {packageDetails.locations?.join(', ') || 'N/A'}
                         </Typography>
                     </Paper>
 
@@ -231,7 +228,7 @@ const BookingPage = () => {
                 </Typography>
                 <Paper elevation={2} sx={{ padding: 3 }}>
                     <ul>
-                        {packageDetails.features?.length > 0 ? (
+                        {packageDetails?.features?.length > 0 ? (
                             packageDetails.features.map((feature, idx) => (
                                 <li key={idx}>{feature}</li>
                             ))
@@ -247,7 +244,7 @@ const BookingPage = () => {
                     Itinerary
                 </Typography>
                 <Paper elevation={2} sx={{ padding: 3 }}>
-                    <Typography>{packageDetails.itinerary}</Typography>
+                    <Typography>{packageDetails?.itinerary}</Typography>
                 </Paper>
             </Box>
 
@@ -256,7 +253,7 @@ const BookingPage = () => {
                     Status
                 </Typography>
                 <Paper elevation={2} sx={{ padding: 3 }}>
-                    <Typography>{packageDetails.status}</Typography>
+                    <Typography>{packageDetails?.status}</Typography>
                 </Paper>
             </Box>
 
@@ -299,24 +296,22 @@ const BookingPage = () => {
                             sx={{ padding: 3, marginBottom: 2 }}
                         >
                             <Typography variant="body1">
-                                <strong>{review.userID.name}</strong>
+                                <strong>{review.userID?.name || 'Anonymous'}</strong>
                             </Typography>
                             <Typography variant="body2" color="textSecondary">
-                                {review.comment}
+                                {review.comments}
                             </Typography>
                             <Box sx={{ marginTop: 1 }}>
-                                {[...Array(5)].map((_, index) => {
-                                    const filled = index < review.ratings;
-                                    return filled ? (
-                                        <StarIcon key={index} />
-                                    ) : (
-                                        <StarOutlineIcon key={index} />
-                                    );
-                                })}
+                                {[...Array(5)].map((_, starIdx) => (
+                                    <span key={starIdx}>
+                                        {starIdx < review.ratings ? (
+                                            <StarIcon color="primary" />
+                                        ) : (
+                                            <StarOutlineIcon color="disabled" />
+                                        )}
+                                    </span>
+                                ))}
                             </Box>
-                            <Typography variant="body2">
-                                <strong>Comment:</strong> {review.comments}
-                            </Typography>
                         </Paper>
                     ))
                 )}

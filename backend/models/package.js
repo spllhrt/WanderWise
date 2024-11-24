@@ -14,12 +14,6 @@ const packageSchema = new mongoose.Schema(
       type: Number,
       required: [true, 'Please enter package price'],
     },
-    locations: [
-      {
-        type: String,
-        required: [true, 'Please enter locations'],
-      },
-    ],
     features: [
       {
         type: String,

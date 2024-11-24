@@ -62,7 +62,7 @@ const Reviews = () => {
 
     const handleDeleteReview = async (id) => {
         try {
-            await axios.delete(`http://localhost:5000/api/review/${id}`);
+            await axios.delete(`http://localhost:5000/api/admin/review/${id}`);
             setReviews(reviews.filter(r => r._id !== id));
             toast.success('Review deleted successfully');
         } catch (err) {

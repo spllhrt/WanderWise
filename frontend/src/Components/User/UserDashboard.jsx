@@ -29,7 +29,7 @@ const UserDashboard = () => {
         category: '',
         page: 1,
     });
-    
+
     const [minPrice, setMinPrice] = useState('');
     const [maxPrice, setMaxPrice] = useState('');
     const [loading, setLoading] = useState(true);
@@ -86,7 +86,7 @@ const UserDashboard = () => {
         const inPriceRange =
             (minPrice === '' || pkg.price >= parseFloat(minPrice)) &&
             (maxPrice === '' || pkg.price <= parseFloat(maxPrice));
-        
+
         return inPriceRange;
     });
 
@@ -157,113 +157,128 @@ const UserDashboard = () => {
                 <div className="dashboard-container">
                     {user ? (
                         <>
-                           <Typography variant="h4" gutterBottom>
-                            <b>Welcome to WanderWise</b>!
+                            <Typography variant="h4" gutterBottom>
+                                <b>Welcome to WanderWise</b>!
                             </Typography>
                             <Typography variant="body1" gutterBottom style={{ fontStyle: 'italic' }}>
-                            {user.name}
-                        </Typography>
+                                {user.name}
+                            </Typography>
 
-                        {/* Filters and Packages Layout */}
-                        <Box sx={{ display: 'grid', gridTemplateColumns: '250px 1fr', gap: '2rem' }}>
-                            {/* Filters Section */}
-                            <Box sx={{ backgroundColor: '#f5f5f5', p: 2, borderRadius: '8px' }}>
-                                <Typography variant="h6" gutterBottom>
-                                    Filters
-                                </Typography>
-                                <FormControl fullWidth sx={{ mb: 2 }}>
-                                    <InputLabel>Category</InputLabel>
-                                    <Select
-                                        value={filters.category}
-                                        label="Category"
-                                        onChange={handleCategoryChange}
-                                    >
-                                        <MenuItem value="">All</MenuItem>
-                                        {categories.map((category) => (
-                                            <MenuItem key={category._id} value={category._id}>
-                                                {category.name}
-                                            </MenuItem>
-                                        ))}
-                                    </Select>
-                                </FormControl>
+                            {/* Filters and Packages Layout */}
+                            <Box sx={{
+                                display: 'grid',
+                                gridTemplateColumns: { xs: '1fr', md: '250px 1fr' },
+                                gap: '2rem',
+                                mb: 4,
+                            }}>
+                                {/* Filters Section */}
+                                <Box sx={{
+                                    backgroundColor: '#f5f5f5',
+                                    p: 2,
+                                    borderRadius: '8px',
+                                    boxShadow: 2,
+                                }}>
+                                    <Typography variant="h6" gutterBottom>
+                                        Filters
+                                    </Typography>
+                                    <FormControl fullWidth sx={{ mb: 2 }}>
+                                        <InputLabel>Category</InputLabel>
+                                        <Select
+                                            value={filters.category}
+                                            label="Category"
+                                            onChange={handleCategoryChange}
+                                        >
+                                            <MenuItem value="">All</MenuItem>
+                                            {categories.map((category) => (
+                                                <MenuItem key={category._id} value={category._id}>
+                                                    {category.name}
+                                                </MenuItem>
+                                            ))}
+                                        </Select>
+                                    </FormControl>
 
-                                <TextField
-                                    label="Min Price"
-                                    type="number"
-                                    fullWidth
-                                    value={minPrice}
-                                    onChange={(e) => setMinPrice(e.target.value)}
-                                    sx={{ mb: 2 }}
-                                    InputProps={{
-                                        inputProps: { min: 0 },
-                                    }}
-                                />
-                                <TextField
-                                    label="Max Price"
-                                    type="number"
-                                    fullWidth
-                                    value={maxPrice}
-                                    onChange={(e) => setMaxPrice(e.target.value)}
-                                    InputProps={{
-                                        inputProps: { min: 0 },
-                                    }}
-                                />
+                                    <TextField
+                                        label="Min Price"
+                                        type="number"
+                                        fullWidth
+                                        value={minPrice}
+                                        onChange={(e) => setMinPrice(e.target.value)}
+                                        sx={{ mb: 2 }}
+                                        InputProps={{
+                                            inputProps: { min: 0 },
+                                        }}
+                                    />
+                                    <TextField
+                                        label="Max Price"
+                                        type="number"
+                                        fullWidth
+                                        value={maxPrice}
+                                        onChange={(e) => setMaxPrice(e.target.value)}
+                                        InputProps={{
+                                            inputProps: { min: 0 },
+                                        }}
+                                    />
+                                </Box>
+
+                                {/* Packages Section */}
+                                <Box>
+                                    <Typography variant="h5" gutterBottom>
+                                        Available Packages
+                                    </Typography>
+                                    {loading ? (
+                                        <Typography>Loading packages...</Typography>
+                                    ) : filteredPackages.length > 0 ? (
+                                        <Grid container spacing={4}>
+                                            {filteredPackages.map((pkg) => (
+                                                <Grid item xs={12} sm={6} md={4} key={pkg._id}>
+                                                    <Card sx={{
+                                                        display: 'flex',
+                                                        flexDirection: 'column',
+                                                        minWidth: 250,
+                                                        boxShadow: 3,
+                                                    }}>
+                                                        <CardActionArea onClick={() => handleBookNow(pkg._id)}>
+                                                            <CardMedia
+                                                                component="img"
+                                                                height="200"
+                                                                image={pkg.images[0]?.url || '/images/default-package.jpg'}
+                                                                alt={pkg.name}
+                                                                sx={{
+                                                                    objectFit: 'cover',
+                                                                    borderTopLeftRadius: 2,
+                                                                    borderTopRightRadius: 2,
+                                                                }}
+                                                            />
+                                                            <CardContent>
+                                                                <Typography variant="h6" gutterBottom>
+                                                                    {pkg.name}
+                                                                </Typography>
+                                                                <Typography variant="body2" color="textSecondary" paragraph>
+                                                                    {pkg.description}
+                                                                </Typography>
+                                                                <Typography variant="body1">Price: ${pkg.price}</Typography>
+                                                                <Button
+                                                                    variant="contained"
+                                                                    color="primary"
+                                                                    fullWidth
+                                                                >
+                                                                    Book Now
+                                                                </Button>
+                                                            </CardContent>
+                                                        </CardActionArea>
+                                                    </Card>
+                                                </Grid>
+                                            ))}
+                                        </Grid>
+                                    ) : (
+                                        <Typography>No packages available</Typography>
+                                    )}
+                                </Box>
                             </Box>
-
-                            {/* Packages Section */}
-                            <Box>
-                                <Typography variant="h5" gutterBottom>
-                                    Available Packages
-                                </Typography>
-                                {loading ? (
-                                    <Typography>Loading packages...</Typography>
-                                ) : filteredPackages.length > 0 ? (
-                                    <Grid container spacing={4}>
-                                        {filteredPackages.map((pkg) => (
-                                            <Grid item xs={12} sm={6} md={4} key={pkg._id}>
-                                                <Card sx={{ minWidth: 250, display: 'flex', flexDirection: 'column' }}>
-                                                    <CardActionArea onClick={() => handleBookNow(pkg._id)}>
-                                                        <CardMedia
-                                                            component="img"
-                                                            height="200"
-                                                            image={pkg.images[0]?.url || '/images/default-package.jpg'}
-                                                            alt={pkg.name}
-                                                            sx={{
-                                                                objectFit: 'cover',
-                                                                borderTopLeftRadius: 2,
-                                                                borderTopRightRadius: 2,
-                                                            }}
-                                                        />
-                                                        <CardContent>
-                                                            <Typography variant="h6" gutterBottom>
-                                                                {pkg.name}
-                                                            </Typography>
-                                                            <Typography variant="body2" color="textSecondary" paragraph>
-                                                                {pkg.description}
-                                                            </Typography>
-                                                            <Typography variant="body1">Price: ${pkg.price}</Typography>
-                                                            <Button
-                                                                variant="contained"
-                                                                color="primary"
-                                                                fullWidth
-                                                            >
-                                                                Book Now
-                                                            </Button>
-                                                        </CardContent>
-                                                    </CardActionArea>
-                                                </Card>
-                                            </Grid>
-                                        ))}
-                                    </Grid>
-                                ) : (
-                                    <Typography>No packages available</Typography>
-                                )}
-                            </Box>
-                        </Box>
-                    </>
-                ) : (
-                    <Typography>Loading...</Typography>
-                )}
+                        </>
+                    ) : (
+                        <Typography>Loading...</Typography>
+                    )}
                 </div>
             </Container>
         </>
