@@ -5,7 +5,7 @@ import Loader from '../Layout/Loader';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import axios from 'axios';
-import { authenticate, getUser } from '../../utils/helpers';
+import { authenticate } from '../../utils/helpers';
 import { GoogleLogin } from '@react-oauth/google';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
@@ -74,8 +74,17 @@ const Login = () => {
     return (
         <>
             <MetaData title="Login" />
-            <div className="row wrapper">
-                <div className="col-10 col-lg-5">
+            <div className="login-container" style={styles.container}>
+                <div className="login-form" style={styles.formContainer}>
+                    {/* Logo Placeholder */}
+                    <div style={styles.logoContainer}>
+                        <img src="images/wanderwise.jpg" alt="WanderWise Logo" style={styles.logo} />
+                    </div>
+
+
+                    <h1 style={styles.title}>WanderWise Login</h1>
+
+
                     <Formik
                         initialValues={{ email: '', password: '' }}
                         validationSchema={validationSchema}
@@ -85,42 +94,58 @@ const Login = () => {
                         }}
                     >
                         {({ isSubmitting }) => (
-                            <Form className="shadow-lg">
-                                <h1 className="mb-3">Login</h1>
-                                <div className="form-group">
-                                    <label htmlFor="email_field">Email</label>
+                            <Form style={styles.form}>
+                                <div className="form-group" style={styles.inputGroup}>
+                                    <label htmlFor="email_field" style={styles.label}>Email</label>
                                     <Field
                                         type="email"
                                         id="email_field"
                                         name="email"
                                         className="form-control"
+                                        style={styles.input}
                                     />
-                                    <ErrorMessage name="email" component="div" className="text-danger" />
+                                    <ErrorMessage name="email" component="div" style={styles.errorMessage} />
                                 </div>
-                                <div className="form-group">
-                                    <label htmlFor="password_field">Password</label>
+                                <div className="form-group" style={styles.inputGroup}>
+                                    <label htmlFor="password_field" style={styles.label}>Password</label>
                                     <Field
                                         type="password"
                                         id="password_field"
                                         name="password"
                                         className="form-control"
+                                        style={styles.input}
                                     />
-                                    <ErrorMessage name="password" component="div" className="text-danger" />
+                                    <ErrorMessage name="password" component="div" style={styles.errorMessage} />
                                 </div>
-                                <Link to="/password/forgot" className="float-right mb-4">Forgot Password?</Link>
+
+
+                                <Link to="/password/forgot" style={styles.forgotPasswordLink}>
+                                    Forgot Password?
+                                </Link>
+
+
                                 <button
                                     type="submit"
                                     className="btn btn-block py-3"
+                                    style={styles.loginButton}
                                     disabled={isSubmitting}
                                 >
                                     LOGIN
                                 </button>
-                                <p>Don't have an account? <Link to="/register" className="float-right mb-4">Register</Link></p>
-                                <div className="my-3">
-                                    <h6>Or Continue with Google</h6>
+
+
+                                <p style={styles.registerText}>
+                                    Don't have an account? <Link to="/register" style={styles.registerLink}>Register</Link>
+                                </p>
+
+
+                                <div className="my-3" style={styles.googleLoginContainer}>
+                                    <h6 style={styles.orText}>Or Continue with Google</h6>
                                     <GoogleLogin
                                         onSuccess={handleGoogleLogin}
                                         onError={() => toast.error("Google login failed", { position: 'bottom-right' })}
+                                        theme="outline"
+                                        useOneTap
                                     />
                                 </div>
                             </Form>
@@ -130,6 +155,97 @@ const Login = () => {
             </div>
         </>
     );
+};
+
+
+const styles = {
+    container: {
+        backgroundColor: '#E5E3D4',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '100vh',
+        padding: '20px',
+    },
+    formContainer: {
+        backgroundColor: '#9ABF80',
+        padding: '40px',
+        borderRadius: '10px',
+        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+        width: '100%',
+        maxWidth: '400px',
+    },
+    logoContainer: {
+        textAlign: 'center',
+        marginBottom: '20px',
+    },
+    logo: {
+        width: '120px',
+        height: 'auto',
+    },
+    title: {
+        fontSize: '24px',
+        fontWeight: 'bold',
+        color: '#1C325B',
+        marginBottom: '20px',
+        textAlign: 'center',
+    },
+    form: {
+        display: 'flex',
+        flexDirection: 'column',
+    },
+    inputGroup: {
+        marginBottom: '20px',
+    },
+    label: {
+        fontWeight: 'bold',
+        color: '#1C325B',
+    },
+    input: {
+        width: '100%',
+        padding: '12px',
+        borderRadius: '8px',
+        border: '1px solid #6A669D',
+        marginTop: '5px',
+        marginBottom: '5px',
+    },
+    errorMessage: {
+        color: 'red',
+        fontSize: '12px',
+    },
+    forgotPasswordLink: {
+        color: '#6A669D',
+        fontSize: '14px',
+        textAlign: 'right',
+        display: 'block',
+        marginBottom: '10px',
+    },
+    loginButton: {
+        backgroundColor: '#1C325B',
+        color: 'white',
+        padding: '12px',
+        borderRadius: '8px',
+        border: 'none',
+        cursor: 'pointer',
+        marginBottom: '20px',
+    },
+    registerText: {
+        textAlign: 'center',
+        fontSize: '14px',
+        color: '#1C325B',
+    },
+    registerLink: {
+        color: '#6A669D',
+        textDecoration: 'underline',
+    },
+    googleLoginContainer: {
+        textAlign: 'center',
+        marginTop: '20px',
+    },
+    orText: {
+        fontSize: '16px',
+        color: '#1C325B',
+    },
 };
 
 

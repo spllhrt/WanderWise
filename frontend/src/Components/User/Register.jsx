@@ -4,6 +4,7 @@ import MetaData from '../Layout/MetaData';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import axios from 'axios';
+import './Register.css'; // Ensure you create a CSS file for custom styling
 
 
 const Register = () => {
@@ -39,7 +40,6 @@ const Register = () => {
             );
 
 
-            console.log(data.user);
             resetForm(); // Clear the form
             navigate('/login'); // Redirect after successful registration
         } catch (error) {
@@ -56,17 +56,18 @@ const Register = () => {
         <>
             <MetaData title={'Register'} />
             <div className="row wrapper">
-                <div className="col-10 col-lg-5">
+                <div className="col-10 col-lg-5 offset-lg-1 register-container">
+                    <div className="register-header">
+                        <img src="images/wanderwise.jpg" alt="WanderWise Logo" className="logo" />
+                        <h1 className="mb-3">WanderWise Register</h1>
+                    </div>
                     <Formik
                         initialValues={{ name: '', email: '', password: '' }}
                         validationSchema={validationSchema}
                         onSubmit={register}
                     >
                         {({ isSubmitting }) => (
-                            <Form className="shadow-lg">
-                                <h1 className="mb-3">Register</h1>
-
-
+                            <Form className="register-form shadow-lg">
                                 <div className="form-group">
                                     <label htmlFor="name_field">Name</label>
                                     <Field

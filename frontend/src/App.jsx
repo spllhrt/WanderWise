@@ -15,7 +15,7 @@ import Profile from './Components/User/Profile';
 import Dashboard from './Components/Dashboard/Dashboard';
 import UserDashboard from './Components/User/UserDashboard';
 import AdminDashboard from './Components/Admin/AdminDashboard';
-import Bookings from './Components/Admin/BookingStatus'; 
+import BookingManagement from './Components/Admin/BookingStatus'; 
 import BookingPage from './Components/User/BookingPage';
 import BookingHistory from './Components/User/BookingHistory';
 
@@ -37,7 +37,7 @@ function App() {
           {/* Admin Routes */}
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/admin-dashboard" element={<AdminDashboard />} />
-          <Route path="/book" element={<Bookings />} />
+          <Route path="/book" element={<BookingManagement />} />
           
           {/* CRUD Routes */}
           <Route path="/category" element={<Category />} />

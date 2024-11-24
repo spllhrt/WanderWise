@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
     Container, Typography, Grid, Button, 
-    TextField, Paper, Box 
+    TextField, Paper, Box, Checkbox, FormControlLabel 
 } from '@mui/material';
 import { Carousel } from 'react-responsive-carousel';
 import "react-responsive-carousel/lib/styles/carousel.min.css";
@@ -25,6 +25,9 @@ const BookingPage = () => {
     const [reviews, setReviews] = useState([]);
     const [reviewsLoading, setReviewsLoading] = useState(true);
     const [reviewsError, setReviewsError] = useState(null);
+
+    // Ratings filter state
+    const [selectedRatings, setSelectedRatings] = useState([]);
 
     useEffect(() => {
         if (!packageId) {
@@ -110,6 +113,20 @@ const BookingPage = () => {
             alert('An error occurred while creating the booking.');
         }
     };
+
+    // Handle ratings filter change
+    const handleRatingChange = (rating) => {
+        setSelectedRatings((prevRatings) =>
+            prevRatings.includes(rating)
+                ? prevRatings.filter((r) => r !== rating)
+                : [...prevRatings, rating]
+        );
+    };
+
+    // Filter reviews based on selected ratings
+    const filteredReviews = reviews.filter((review) =>
+        selectedRatings.length === 0 || selectedRatings.includes(review.ratings)
+    );
 
     if (loading) {
         return <p>Loading package details...</p>;
@@ -243,6 +260,26 @@ const BookingPage = () => {
                 </Paper>
             </Box>
 
+            {/* Ratings Filter Section */}
+            <Box sx={{ marginTop: 4 }}>
+                <Typography variant="h6" gutterBottom>
+                    Filter Reviews by Rating
+                </Typography>
+                {[1, 2, 3, 4, 5].map((rating) => (
+                    <FormControlLabel
+                        key={rating}
+                        control={
+                            <Checkbox
+                                checked={selectedRatings.includes(rating)}
+                                onChange={() => handleRatingChange(rating)}
+                                name={`rating-${rating}`}
+                            />
+                        }
+                        label={`Rating ${rating} Stars`}
+                    />
+                ))}
+            </Box>
+
             {/* Reviews Section */}
             <Box sx={{ marginTop: 4 }}>
                 <Typography variant="h6" gutterBottom>
@@ -252,50 +289,33 @@ const BookingPage = () => {
                     <Typography>Loading reviews...</Typography>
                 ) : reviewsError ? (
                     <Typography color="error">{reviewsError}</Typography>
-                ) : reviews.length === 0 ? (
+                ) : filteredReviews.length === 0 ? (
                     <Typography>No reviews found for this package.</Typography>
                 ) : (
-                    reviews.map((review, idx) => (
+                    filteredReviews.map((review, idx) => (
                         <Paper
                             key={idx}
                             elevation={2}
                             sx={{ padding: 3, marginBottom: 2 }}
                         >
                             <Typography variant="body1">
-                                <strong>{review.userID?.name || 'Anonymous'}</strong>
+                                <strong>{review.userID.name}</strong>
                             </Typography>
-                            <Box sx={{ display: 'flex', alignItems: 'center', marginY: 1 }}>
-                                <Typography variant="body2">
-                                    <strong>Rating:</strong>
-                                </Typography>
-                                <Box sx={{ display: 'flex', marginLeft: 1 }}>
-                                    {[...Array(5)].map((_, starIndex) =>
-                                        starIndex < review.ratings ? (
-                                            <StarIcon key={starIndex} color="primary" />
-                                        ) : (
-                                            <StarOutlineIcon key={starIndex} color="disabled" />
-                                        )
-                                    )}
-                                </Box>
+                            <Typography variant="body2" color="textSecondary">
+                                {review.comment}
+                            </Typography>
+                            <Box sx={{ marginTop: 1 }}>
+                                {[...Array(5)].map((_, index) => {
+                                    const filled = index < review.ratings;
+                                    return filled ? (
+                                        <StarIcon key={index} />
+                                    ) : (
+                                        <StarOutlineIcon key={index} />
+                                    );
+                                })}
                             </Box>
                             <Typography variant="body2">
                                 <strong>Comment:</strong> {review.comments}
-                            </Typography>
-                            {review.images?.length > 0 && (
-                                <Carousel>
-                                    {review.images.map((img, idx) => (
-                                        <div key={idx}>
-                                            <img
-                                                src={img.url}
-                                                alt={`Review Image ${idx}`}
-                                                style={{ maxHeight: '300px', objectFit: 'cover' }}
-                                            />y
-                                        </div>
-                                    ))}
-                                </Carousel>
-                            )}
-                            <Typography variant="caption" color="textSecondary">
-                                {new Date(review.createdAt).toLocaleString()}
                             </Typography>
                         </Paper>
                     ))

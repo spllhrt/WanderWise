@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getUser } from '../../utils/helpers';
 import {
+    AppBar,
+    Toolbar,
     Card,
     CardContent,
     Typography,
@@ -14,7 +16,9 @@ import {
     DialogActions,
     TextField,
     Rating,
+    Box
 } from '@mui/material';
+import Filter from 'bad-words'; // Import bad-words package
 
 const BookingHistory = () => {
     const [bookings, setBookings] = useState([]);
@@ -29,6 +33,9 @@ const BookingHistory = () => {
         comments: '',
     });
     const navigate = useNavigate();
+
+    // Initialize the bad words filter
+    const filter = new Filter();
 
     useEffect(() => {
         const loggedInUser = getUser();
@@ -147,14 +154,18 @@ const BookingHistory = () => {
     const handleReviewClose = () => {
         setOpenReviewDialog(false);
     };
+
     const handleReviewSubmit = async () => {
         const { bookingId, packageId, rating, comments } = reviewDetails;
-    
+
         if (!rating || !comments) {
             alert('Please provide both a rating and a comment.');
             return;
         }
-    
+
+        // Filter bad words in comments
+        const filteredComment = filter.clean(comments);
+
         try {
             const response = await fetch(`http://localhost:5000/api/review/new`, {
                 method: 'POST',
@@ -165,13 +176,13 @@ const BookingHistory = () => {
                 body: JSON.stringify({
                     userID: getUser()._id,
                     packageId,
-                    comments,
+                    comments: filteredComment, // Send filtered comment
                     ratings: rating,  // Ensure 'ratings' is a number
                 }),
             });
-    
+
             const data = await response.json();
-    
+
             if (response.ok) {
                 alert('Review submitted successfully.');
                 setOpenReviewDialog(false);
@@ -183,95 +194,149 @@ const BookingHistory = () => {
             alert('Error submitting the review.');
         }
     };
-    
 
     if (loading) return <CircularProgress />;
 
     return (
-        <div>
-            <Typography variant="h4" gutterBottom>
-                Booking History
-            </Typography>
-            {bookings.length > 0 ? (
-                <Grid container spacing={3}>
-                    {bookings.map((booking) => (
-                        <Grid item xs={12} sm={6} md={4} key={booking._id}>
-                            <Card>
-                                <CardContent>
-                                    <Typography variant="h6">{booking.packageId.name}</Typography>
-                                    <Typography variant="body1">Travel Dates: {booking.travelDates}</Typography>
-                                    <Typography variant="body2">Number of Travelers: {booking.numberOfTravelers}</Typography>
-                                    <Typography variant="body2">Total Price: ${booking.totalPrice}</Typography>
-                                    <Typography variant="body2">
-                                        Status: {booking.bookingStatus}
-                                    </Typography>
-                                    <div>
-                                        {booking.bookingStatus === 'success' && (
-                                            <div>
+        <>
+            {/* Navbar */}
+            <AppBar position="sticky" color="primary">
+                <Toolbar>
+                    <Typography variant="h6" sx={{ flexGrow: 1 }}>
+                        User Dashboard
+                    </Typography>
+                    <Button color="inherit" onClick={() => navigate('/user-dashboard')}>Dashboard</Button>
+                    <Button color="inherit" onClick={() => navigate('/booking-history')}>Booking History</Button>
+                    <Button color="inherit" onClick={() => navigate('/profile')}>Profile</Button>
+                </Toolbar>
+            </AppBar>
+
+            <Box sx={{ padding: '20px', backgroundColor: '#f4f4f9' }}>
+                <Typography variant="h4" align="center" sx={{ marginBottom: '30px', fontFamily: 'Roboto, sans-serif', fontWeight: '500' }}>
+                    Booking History
+                </Typography>
+               
+                {bookings.length > 0 ? (
+                    <Grid container spacing={3} justifyContent="center">
+                        {bookings.map((booking) => (
+                            <Grid item xs={12} sm={6} md={4} key={booking._id}>
+                                <Card sx={{ boxShadow: 3, borderRadius: 2, overflow: 'hidden' }}>
+                                    <CardContent sx={{ padding: '20px' }}>
+                                        <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                                            {booking.packageId.name}
+                                        </Typography>
+                                        <Typography variant="body1" sx={{ marginBottom: '8px' }}>
+                                            Travel Dates: {booking.travelDates}
+                                        </Typography>
+                                        <Typography variant="body2" sx={{ marginBottom: '8px' }}>
+                                            Number of Travelers: {booking.numberOfTravelers}
+                                        </Typography>
+                                        <Typography variant="body2" sx={{ marginBottom: '8px' }}>
+                                            Total Price: ${booking.totalPrice}
+                                        </Typography>
+                                        <Typography variant="body2" sx={{ marginBottom: '16px' }}>
+                                            Status: {booking.bookingStatus}
+                                        </Typography>
+                                        <div style={{ display: 'flex', gap: '10px' }}>
+                                            {booking.bookingStatus === 'success' ? (
+                                                <>
+                                                    <Button
+                                                        variant="outlined"
+                                                        color="primary"
+                                                        onClick={() => {
+                                                            setTicket({
+                                                                message: 'Your ticket details are available.',
+                                                                bookingDetails: {
+                                                                    package: booking.packageId.name,
+                                                                    numberOfTravelers: booking.numberOfTravelers,
+                                                                    totalPrice: booking.totalPrice,
+                                                                    travelDate: booking.travelDates,
+                                                                },
+                                                                confirmationMessage: 'This is your confirmed booking ticket.',
+                                                            });
+                                                            setTicketReady(true);
+                                                        }}
+                                                    >
+                                                        View Ticket
+                                                    </Button>
+                                                    <Button
+                                                        variant="contained"
+                                                        color="secondary"
+                                                        onClick={() => handleReviewOpen(booking._id, booking.packageId._id)}
+                                                    >
+                                                        Leave a Review
+                                                    </Button>
+                                                </>
+                                            ) : (
                                                 <Button
                                                     variant="outlined"
-                                                    color="primary"
-                                                    onClick={() => {
-                                                        setTicket({
-                                                            message: 'Your ticket details are available.',
-                                                            bookingDetails: {
-                                                                package: booking.packageId.name,
-                                                                numberOfTravelers: booking.numberOfTravelers,
-                                                                totalPrice: booking.totalPrice,
-                                                                travelDate: booking.travelDates,
-                                                            },
-                                                            confirmationMessage: 'This is your confirmed booking ticket.',
-                                                        });
-                                                        setTicketReady(true);
-                                                    }}
-                                                >
-                                                    View Ticket
-                                                </Button>
-                                                <Button
-                                                    variant="contained"
                                                     color="secondary"
-                                                    onClick={() => handleReviewOpen(booking._id, booking.packageId._id)}
+                                                    onClick={() => cancelBooking(booking._id)}
                                                 >
-                                                    Leave a Review
+                                                    Cancel Booking
                                                 </Button>
+                                            )}
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </Grid>
+                        ))}
+                    </Grid>
+                ) : (
+                    <Typography variant="h6" align="center">
+                        You don't have any bookings yet.
+                    </Typography>
+                )}
+            </Box>
 
-                                            </div>
-                                        )}
-                                        {booking.bookingStatus !== 'success' && (
-                                            <Button
-                                                variant="outlined"
-                                                color="secondary"
-                                                onClick={() => cancelBooking(booking._id)}
-                                            >
-                                                Cancel
-                                            </Button>
-                                        )}
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        </Grid>
-                    ))}
-                </Grid>
-            ) : (
-                <Typography>No bookings found.</Typography>
-            )}
+            {/* Ticket Confirmation Dialog */}
+            <Dialog open={ticketReady} onClose={() => setTicketReady(false)}>
+                <DialogTitle>Booking Confirmation</DialogTitle>
+                <DialogContent>
+                    {ticket && (
+                        <>
+                            <Typography variant="body1">{ticket.message}</Typography>
+                            <Box sx={{ marginTop: '20px', fontWeight: 'bold' }}>
+                                <Typography variant="body2">Package: {ticket.bookingDetails.package}</Typography>
+                                <Typography variant="body2">
+                                    Number of Travelers: {ticket.bookingDetails.numberOfTravelers}
+                                </Typography>
+                                <Typography variant="body2">Total Price: ${ticket.bookingDetails.totalPrice}</Typography>
+                                <Typography variant="body2">Travel Date: {ticket.bookingDetails.travelDate}</Typography>
+                            </Box>
+                            <Typography variant="body1" sx={{ marginTop: '15px' }}>
+                                {ticket.confirmationMessage}
+                            </Typography>
+                        </>
+                    )}
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setTicketReady(false)} color="primary">
+                        Close
+                    </Button>
+                </DialogActions>
+            </Dialog>
 
             {/* Review Dialog */}
             <Dialog open={openReviewDialog} onClose={handleReviewClose}>
                 <DialogTitle>Leave a Review</DialogTitle>
                 <DialogContent>
-                <Rating
-                    value={reviewDetails.rating}
-                    onChange={(event, newValue) => setReviewDetails({ ...reviewDetails, rating: newValue })}
-                />
-
+                    <Rating
+                        name="simple-controlled"
+                        value={reviewDetails.rating}
+                        onChange={(event, newValue) => setReviewDetails({ ...reviewDetails, rating: newValue })}
+                    />
                     <TextField
+                        fullWidth
                         label="Comments"
+                        variant="outlined"
                         multiline
                         rows={4}
-                        fullWidth
                         value={reviewDetails.comments}
-                        onChange={(e) => setReviewDetails({ ...reviewDetails, comments: e.target.value })}
+                        onChange={(e) =>
+                            setReviewDetails({ ...reviewDetails, comments: e.target.value })
+                        }
+                        sx={{ marginTop: '20px' }}
                     />
                 </DialogContent>
                 <DialogActions>
@@ -283,26 +348,7 @@ const BookingHistory = () => {
                     </Button>
                 </DialogActions>
             </Dialog>
-
-            {ticketReady && ticket && (
-                <Dialog open={ticketReady} onClose={() => setTicketReady(false)}>
-                    <DialogTitle>Booking Confirmation</DialogTitle>
-                    <DialogContent>
-                        <Typography>{ticket.message}</Typography>
-                        <Typography>Package: {ticket.bookingDetails.package}</Typography>
-                        <Typography>Travel Date: {ticket.bookingDetails.travelDate}</Typography>
-                        <Typography>Number of Travelers: {ticket.bookingDetails.numberOfTravelers}</Typography>
-                        <Typography>Total Price: ${ticket.bookingDetails.totalPrice}</Typography>
-                        <Typography>{ticket.confirmationMessage}</Typography>
-                    </DialogContent>
-                    <DialogActions>
-                        <Button onClick={() => setTicketReady(false)} color="primary">
-                            Close
-                        </Button>
-                    </DialogActions>
-                </Dialog>
-            )}
-        </div>
+        </>
     );
 };
 
