@@ -127,6 +127,9 @@ const AdminDashboard = () => {
                     <Button variant="contained" color="warning" sx={{ margin: '0 1rem' }} component={Link} to="/review">
                         View Reviews
                     </Button>
+                    <Button variant="contained" color="success" sx={{ margin: '0 1rem' }} component={Link} to="/book">
+                        View Bookings
+                    </Button>
                 </Box>
             </Box>
         </>

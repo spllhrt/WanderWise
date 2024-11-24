@@ -4,8 +4,10 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import MetaData from '../Layout/MetaData';
-import { getUser, logout } from '../../utils/helpers';
+import { getUser } from '../../utils/helpers';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import MUIDataTable from "mui-datatables";
+import { Dialog, DialogActions, DialogContent, DialogTitle, Button } from '@mui/material';
 
 const Reviews = () => {
     const [reviews, setReviews] = useState([]);
@@ -51,7 +53,7 @@ const Reviews = () => {
         try {
             const res = await axios.get(`http://localhost:5000/api/review/${id}`);
             setReview(res.data.review);
-            setViewMode(false);
+            setViewMode(true);
             setModalShow(true);
         } catch (err) {
             setError('Review not found');
@@ -74,6 +76,44 @@ const Reviews = () => {
         setModalShow(true);
     };
 
+    const handleCloseModal = () => {
+        setModalShow(false);
+    };
+
+    // Function to render stars based on rating
+    const renderStars = (rating) => {
+        const filledStars = '★'.repeat(rating); // Create string of filled stars
+        const emptyStars = '☆'.repeat(5 - rating); // Create string of empty stars (assuming max 5 stars)
+        return filledStars + emptyStars; // Combine filled and empty stars
+    };
+
+    // Data columns for MUI DataTables
+    const columns = [
+        { name: "userID", label: "User ID", options: { filter: true, sort: true } },
+        { name: "comments", label: "Comments", options: { filter: true, sort: true } },
+        {
+            name: "actions",
+            label: "Actions",
+            options: {
+                customBodyRender: (value, tableMeta) => {
+                    const reviewId = reviews[tableMeta.rowIndex]._id;
+                    return (
+                        <>
+                            <button className="btn btn-info mr-2" onClick={() => handleViewReview(reviews[tableMeta.rowIndex])}>View</button>
+                            <button className="btn btn-danger" onClick={() => handleDeleteReview(reviewId)}>Delete</button>
+                        </>
+                    );
+                }
+            }
+        }
+    ];
+
+    const options = {
+        filterType: 'checkbox',
+        responsive: 'standard',
+        selectableRows: 'none',
+    };
+
     if (loading) return <div>Loading...</div>;
 
     return (
@@ -82,33 +122,29 @@ const Reviews = () => {
             <div className="container mt-5">
                 <h1 className="mb-4">Reviews</h1>
                 {error && <div className="alert alert-danger">{error}</div>}
-                <table className="table table-striped">
-                    <thead>
-                        <tr>
-                            <th scope="col">User ID</th>
-                            <th scope="col">Comments</th>
-                            <th scope="col">Image</th>
-                            <th scope="col">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {reviews.map(rev => (
-                            <tr key={rev._id}>
-                                <td>{rev.userID}</td>
-                                <td>{rev.comments}</td>
-                                <td>
-                                    {rev.images[0] && (
-                                        <img src={rev.images[0].url} alt="Review" style={{ width: '100px', height: '100px' }} />
-                                    )}
-                                </td>
-                                <td>
-                                    <button className="btn btn-info mr-2" onClick={() => handleViewReview(rev)}>View</button>
-                                    <button className="btn btn-danger" onClick={() => handleDeleteReview(rev._id)}>Delete</button>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+                <MUIDataTable
+                    title={"Reviews List"}
+                    data={reviews}
+                    columns={columns}
+                    options={options}
+                />
+
+                {/* Modal for Viewing Review Details */}
+                <Dialog open={modalShow} onClose={handleCloseModal}>
+                    <DialogTitle>Review Details</DialogTitle>
+                    <DialogContent>
+                        <div>
+                            <h4>User ID: {review.userID}</h4>
+                            <p><strong>Comments:</strong> {review.comments}</p>
+                            <p><strong>Rating:</strong> {review.ratings ? renderStars(review.ratings) : 'No rating provided'}</p>
+                        </div>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={handleCloseModal} color="primary">
+                            Close
+                        </Button>
+                    </DialogActions>
+                </Dialog>
             </div>
         </>
     );

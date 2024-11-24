@@ -11,41 +11,47 @@ import Category from './Components/CRUD/Category';
 import Package from './Components/CRUD/Package';
 import User from './Components/CRUD/User';
 import Review from './Components/CRUD/Review';
-import Profile from './Components/User/profile';
-import Dashboard from './Components/Dashboard/dashboard';
+import Profile from './Components/User/Profile';
+import Dashboard from './Components/Dashboard/Dashboard';
 import UserDashboard from './Components/User/UserDashboard';
 import AdminDashboard from './Components/Admin/AdminDashboard';
+import Bookings from './Components/Admin/BookingStatus'; 
 import BookingPage from './Components/User/BookingPage';
 import BookingHistory from './Components/User/BookingHistory';
-
 
 function App() {
   return (
     <GoogleOAuthProvider clientId="958980366765-2ikfmbalrmr9ai8mjjsurpvh0okvaarb.apps.googleusercontent.com">
       <Router> 
-
         <Routes>
-          {/* Only include Login and Register routes */}
-          <Route path="/login" element={<Login />} exact="true" />
-          <Route path="/register" element={<Register />} exact="true" />
-          <Route path="/category" element={<Category />} exact="true" />
-          <Route path="/package" element={<Package />} exact="true" />
-          <Route path="/user" element={<User />} exact="true" />
-          <Route path="/review" element={<Review />} exact="true" />
-          <Route path="/" element={<Login />} exact="true" />
-          <Route path="/dashboard" element={<Dashboard />} exact="true" />
-          <Route path="/user-dashboard" element={<UserDashboard />} exact />
-          <Route path="/admin-dashboard" element={<AdminDashboard />} exact />
+          {/* Public Routes */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/" element={<Login />} /> {/* Default to login if no other route */}
+          
+          {/* User Routes */}
+          <Route path="/profile" element={<Profile />} />
           <Route path="/booking" element={<BookingPage />} />
           <Route path="/booking-history" element={<BookingHistory />} />
-          <Route path="/profile" element={<Profile />} exact />
+          
+          {/* Admin Routes */}
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/admin-dashboard" element={<AdminDashboard />} />
+          <Route path="/book" element={<Bookings />} />
+          
+          {/* CRUD Routes */}
+          <Route path="/category" element={<Category />} />
+          <Route path="/package" element={<Package />} />
+          <Route path="/user" element={<User />} />
+          <Route path="/review" element={<Review />} />
 
+          {/* Additional User Dashboard */}
+          <Route path="/user-dashboard" element={<UserDashboard />} />
         </Routes>
       </Router>
       <ToastContainer />
     </GoogleOAuthProvider>
   );
 }
-
 
 export default App;

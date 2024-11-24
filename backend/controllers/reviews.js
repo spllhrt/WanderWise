@@ -1,6 +1,7 @@
 const Review = require('../models/reviews'); // Review model
 const APIFeatures = require('../utils/apiFeatures'); // Assuming you have a utility for filtering and pagination
 
+// Get reviews by packageId
 exports.getReviewsByPackageId = async (req, res) => {
     try {
         const { packageId } = req.params;
@@ -27,24 +28,16 @@ exports.getReviewsByPackageId = async (req, res) => {
 // Get all reviews for admin
 exports.getReviews = async (req, res) => {
     try {
-        const resPerPage = 4;
-        const reviewsCount = await Review.countDocuments();
-        const apiFeatures = new APIFeatures(Review.find(), req.query).search().filter();
-        apiFeatures.pagination(resPerPage);
-        const reviews = await apiFeatures.query;
-
-        if (!reviews.length) {
-            return res.status(400).json({ message: 'No reviews found' });
+        const reviews = await Review.find(); // Corrected model name from Reviews to Review
+        if (!reviews || reviews.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'No reviews found',
+            });
         }
-
-        const filteredReviewsCount = reviews.length;
-
         return res.status(200).json({
             success: true,
-            reviews,
-            filteredReviewsCount,
-            resPerPage,
-            reviewsCount,
+            reviews
         });
     } catch (error) {
         console.error('Error fetching reviews:', error);
@@ -55,6 +48,7 @@ exports.getReviews = async (req, res) => {
         });
     }
 };
+
 
 // Get single review
 exports.getSingleReview = async (req, res) => {
@@ -95,7 +89,6 @@ exports.createReview = async (req, res) => {
             packageId,
             comments,
             ratings, // Save the ratings field to the database
-            images: [], // You can handle images later if needed
         });
 
         await newReview.save();
@@ -103,11 +96,10 @@ exports.createReview = async (req, res) => {
         res.status(200).json({ message: 'Review submitted successfully', review: newReview });
     } catch (error) {
         console.error('Error saving review:', error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: 'Server error', error: error.message });
     }
 };
 
-  
 // Update a review
 exports.updateReview = async (req, res) => {
     try {

@@ -45,26 +45,37 @@ exports.getAdminCategories = async (req, res, next) => {
 };
 
 exports.deleteCategory = async (req, res, next) => {
-    const category = await Category.findById(req.params.id);
-    if (!category) {
-        return res.status(404).json({
+    try {
+        const category = await Category.findById(req.params.id);
+        if (!category) {
+            return res.status(404).json({
+                success: false,
+                message: 'Category not found'
+            });
+        }
+
+        // Delete all associated images from Cloudinary
+        for (const image of category.images) {
+            await cloudinary.uploader.destroy(image.public_id);
+        }
+
+        // Use deleteOne() or delete() instead of remove()
+        await Category.deleteOne({ _id: req.params.id });
+
+        return res.status(200).json({
+            success: true,
+            message: 'Category deleted'
+        });
+    } catch (error) {
+        console.error('Error deleting category:', error);
+        return res.status(500).json({
             success: false,
-            message: 'Category not found'
+            message: 'Internal Server Error',
+            error: error.message
         });
     }
-
-    // Delete all associated images from Cloudinary
-    for (const image of category.images) {
-        await cloudinary.uploader.destroy(image.public_id);
-    }
-
-    await category.remove();
-
-    return res.status(200).json({
-        success: true,
-        message: 'Category deleted'
-    });
 };
+
 
 exports.newCategory = async (req, res, next) => {
     let images = req.files || [];

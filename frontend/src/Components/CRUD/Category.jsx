@@ -4,7 +4,6 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import MUIDataTable from "mui-datatables";
-import { getUser, logout } from '../../utils/helpers';
 import MetaData from '../Layout/MetaData';
 
 const Categories = () => {
@@ -14,19 +13,12 @@ const Categories = () => {
     const [updateMode, setUpdateMode] = useState(false);
     const [modalShow, setModalShow] = useState(false);
     const [category, setCategory] = useState({});
+    const [loggedUser, setLoggedUser] = useState(null); // State for logged-in user
     const navigate = useNavigate();
     const { id } = useParams();
 
-    const user = getUser(); // Assuming getUser fetches the logged-in user
-
     useEffect(() => {
-        // Check if the user is logged in and has admin role
-        if (!user || user.role !== 'admin') {
-            navigate('/login');
-            return;
-        }
-
-        // Fetch categories if the user is authenticated and is an admin
+        // Fetch categories
         const fetchCategories = async () => {
             try {
                 const res = await axios.get('http://localhost:5000/api/admin/categories');
@@ -35,9 +27,14 @@ const Categories = () => {
                 toast.error('Error loading categories');
             }
         };
-
         fetchCategories();
-    }, [user, navigate]);
+
+        // Fetch logged-in user details (Example: from localStorage, session, or an API)
+        const user = JSON.parse(localStorage.getItem('loggedUser')); // Assuming logged-in user is stored in localStorage
+        if (user) {
+            setLoggedUser(user);
+        }
+    }, []);
 
     const handleNewCategory = async (e) => {
         e.preventDefault();
@@ -114,7 +111,7 @@ const Categories = () => {
             setModalShow(true);
         }
     };
-    
+
     const columns = [
         { name: "name", label: "Category Name" },
         { 
@@ -159,6 +156,11 @@ const Categories = () => {
             <MetaData title="Categories" />
             <div className="container mt-5">
                 <h1 className="mb-4">Categories</h1>
+                {loggedUser && (
+                    <div>
+                        <p>Welcome, {loggedUser.username}</p> {/* Display logged-in user's name */}
+                    </div>
+                )}
                 <button className="btn btn-primary mb-4" onClick={() => { setNewCategory({ name: '', images: [] }); setUpdateMode(false); setModalShow(true); }}>
                     Add New Category
                 </button>

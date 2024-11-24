@@ -12,7 +12,7 @@ const {
 
 // Public routes
 router.get('/reviews/package/:packageId', getReviewsByPackageId); // Correctly reference getReviewsByPackageId
-router.get('/admin/reviews', getReviews);
+
 router.get('/review/:id', getSingleReview);
 
 // Allow any user to create a review (no admin restriction)
@@ -21,6 +21,7 @@ router.post('/review/new', createReview);  // Regular users can create reviews
 router.put('/review/:id', updateReview);
 
 // Only admins can update and delete specific reviews (optional)
+router.get('/admin/reviews', getReviews);
 router.route('/admin/review/:id')
     .put(updateReview)
     .delete(deleteReview);

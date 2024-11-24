@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import MetaData from '../Layout/MetaData';
 import Loader from '../Layout/Loader';
@@ -7,103 +7,112 @@ import 'react-toastify/dist/ReactToastify.css';
 import axios from 'axios';
 import { authenticate, getUser } from '../../utils/helpers';
 import { GoogleLogin } from '@react-oauth/google';
+import { Formik, Form, Field, ErrorMessage } from 'formik';
+import * as Yup from 'yup';
+
 
 const Login = () => {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [loading, setLoading] = useState(false);
     const location = useLocation();
     const navigate = useNavigate();
 
+
     const redirect = location.search ? new URLSearchParams(location.search).get('redirect') : '';
+
 
     const login = async (email, password) => {
         try {
-            setLoading(true); // Set loading state
             const config = { headers: { 'Content-Type': 'application/json' } };
             const { data } = await axios.post('http://localhost:5000/api/auth/login', { email, password }, config);
 
-            // Redirect based on user role
+
             if (data.user.role === 'user') {
-                authenticate(data, () => navigate('/user-dashboard')); // Redirect to /user-dashboard for role `user`
+                authenticate(data, () => navigate('/user-dashboard'));
             } else if (data.user.role === 'admin') {
-                authenticate(data, () => navigate('/admin-dashboard')); // Redirect to /admin-dashboard for role `admin`
+                authenticate(data, () => navigate('/admin-dashboard'));
             } else {
                 toast.error("You don't have the necessary privileges", { position: 'bottom-right' });
-                navigate('/'); // Redirect to home for any other role
+                navigate('/');
             }
         } catch (error) {
             toast.error("Invalid email or password", { position: 'bottom-right' });
-        } finally {
-            setLoading(false);
         }
     };
+
 
     const handleGoogleLogin = async (response) => {
         try {
             const { credential } = response;
             const config = { headers: { 'Content-Type': 'application/json' } };
 
-            // Send the Google token to the backend for verification
+
             const { data } = await axios.post('http://localhost:5000/api/auth/google-login', { token: credential }, config);
 
-            // Redirect based on user role
+
             if (data.user.role === 'user') {
-                authenticate(data, () => navigate('/user-dashboard')); // Redirect to /user-dashboard for role `user`
+                authenticate(data, () => navigate('/user-dashboard'));
             } else if (data.user.role === 'admin') {
-                authenticate(data, () => navigate('/admin-dashboard')); // Redirect to /admin-dashboard for role `admin`
+                authenticate(data, () => navigate('/admin-dashboard'));
             } else {
                 toast.error("You don't have the necessary privileges", { position: 'bottom-right' });
-                navigate('/'); // Redirect to home for any other role
+                navigate('/');
             }
         } catch (error) {
             toast.error("Google login failed", { position: 'bottom-right' });
         }
     };
 
-    const submitHandler = (e) => {
-        e.preventDefault();
-        login(email, password);
-    };
 
-    useEffect(() => {
-        // Redirect to a specific page if logged in and `redirect` is set
-        if (getUser() && redirect === 'shipping') {
-            navigate(`/${redirect}`);
-        }
-    }, [redirect, navigate]);
+    const validationSchema = Yup.object({
+        email: Yup.string()
+            .email('Invalid email format')
+            .matches(/@.+\.com$/, 'Email format incorrect')
+            .required('Email is required'),
+        password: Yup.string().required('Password is required'),
+    });
+
 
     return (
         <>
-            {loading ? <Loader /> : (
-                <>
-                    <MetaData title="Login" />
-                    <div className="row wrapper">
-                        <div className="col-10 col-lg-5">
-                            <form className="shadow-lg" onSubmit={submitHandler}>
+            <MetaData title="Login" />
+            <div className="row wrapper">
+                <div className="col-10 col-lg-5">
+                    <Formik
+                        initialValues={{ email: '', password: '' }}
+                        validationSchema={validationSchema}
+                        onSubmit={(values, { setSubmitting }) => {
+                            login(values.email, values.password);
+                            setSubmitting(false);
+                        }}
+                    >
+                        {({ isSubmitting }) => (
+                            <Form className="shadow-lg">
                                 <h1 className="mb-3">Login</h1>
                                 <div className="form-group">
                                     <label htmlFor="email_field">Email</label>
-                                    <input
+                                    <Field
                                         type="email"
                                         id="email_field"
+                                        name="email"
                                         className="form-control"
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
                                     />
+                                    <ErrorMessage name="email" component="div" className="text-danger" />
                                 </div>
                                 <div className="form-group">
                                     <label htmlFor="password_field">Password</label>
-                                    <input
+                                    <Field
                                         type="password"
                                         id="password_field"
+                                        name="password"
                                         className="form-control"
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
                                     />
+                                    <ErrorMessage name="password" component="div" className="text-danger" />
                                 </div>
                                 <Link to="/password/forgot" className="float-right mb-4">Forgot Password?</Link>
-                                <button id="login_button" type="submit" className="btn btn-block py-3">
+                                <button
+                                    type="submit"
+                                    className="btn btn-block py-3"
+                                    disabled={isSubmitting}
+                                >
                                     LOGIN
                                 </button>
                                 <p>Don't have an account? <Link to="/register" className="float-right mb-4">Register</Link></p>
@@ -114,13 +123,14 @@ const Login = () => {
                                         onError={() => toast.error("Google login failed", { position: 'bottom-right' })}
                                     />
                                 </div>
-                            </form>
-                        </div>
-                    </div>
-                </>
-            )}
+                            </Form>
+                        )}
+                    </Formik>
+                </div>
+            </div>
         </>
     );
 };
+
 
 export default Login;

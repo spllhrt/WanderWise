@@ -3,6 +3,7 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import MetaData from '../Layout/MetaData';
+import MUIDataTable from "mui-datatables";
 import { getUser, logout } from '../../utils/helpers';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
@@ -74,6 +75,32 @@ const Users = () => {
         setModalShow(true);
     };
 
+    const columns = [
+        { name: "name", label: "Name" },
+        { name: "email", label: "Email" },
+        { name: "role", label: "Role" },
+        { name: "status", label: "Status" },
+        {
+            name: "actions", label: "Actions", options: {
+                customBodyRender: (value, tableMeta, updateValue) => {
+                    const usr = users[tableMeta.rowIndex];
+                    return (
+                        <>
+                            <button className="btn btn-info mr-2" onClick={() => handleViewUser(usr)}>View</button>
+                            <button className="btn btn-warning mr-2" onClick={() => { setUser(usr); setUpdateMode(true); setViewMode(false); setModalShow(true); }}>Edit</button>
+                            <button className="btn btn-danger" onClick={() => handleDeleteUser(usr._id)}>Delete</button>
+                        </>
+                    );
+                }
+            }
+        }
+    ];
+
+    const options = {
+        filter: false,
+        selectableRows: "none",
+    };
+
     if (loading) return <div>Loading...</div>;
 
     return (
@@ -85,32 +112,17 @@ const Users = () => {
                     Add New User
                 </button>
                 {error && <div className="alert alert-danger">{error}</div>}
-                <table className="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Role</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {users.map(usr => (
-                            <tr key={usr._id}>
-                                <td>{usr.name}</td>
-                                <td>{usr.email}</td>
-                                <td>{usr.role}</td>
-                                <td>{usr.status}</td>
-                                <td>
-                                    <button className="btn btn-info mr-2" onClick={() => handleViewUser(usr)}>View</button>
-                                    <button className="btn btn-warning mr-2" onClick={() => { setUser(usr); setUpdateMode(true); setViewMode(false); setModalShow(true); }}>Edit</button>
-                                    <button className="btn btn-danger" onClick={() => handleDeleteUser(usr._id)}>Delete</button>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+                <MUIDataTable
+                    title={"Users List"}
+                    data={users.map(usr => [
+                        usr.name,
+                        usr.email,
+                        usr.role,
+                        usr.status
+                    ])}
+                    columns={columns}
+                    options={options}
+                />
 
                 {/* Modal for Add/Edit/View User */}
                 <div className={`modal fade ${modalShow ? 'show' : ''}`} style={{ display: modalShow ? 'block' : 'none' }} tabIndex="-1" role="dialog" aria-labelledby="userModalLabel" aria-hidden={!modalShow}>

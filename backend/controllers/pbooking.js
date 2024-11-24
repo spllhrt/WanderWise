@@ -102,27 +102,33 @@ exports.deleteBooking = async (req, res) => {
     }
 };
 
+// Define allowed statuses
+const allowedStatuses = ['pending', 'processing', 'confirmed', 'canceled', 'completed'];
+
 exports.updateBookingStatus = async (req, res) => {
     try {
-        const booking = await Booking.findById(req.params.id);
+        const bookingId = req.params.id; // Get booking ID from the route
+        const { bookingStatus } = req.body; // Get the updated booking status from the request body
+
+        // Find the booking by ID and update the status
+        const booking = await Booking.findByIdAndUpdate(
+            bookingId,
+            { bookingStatus },
+            { new: true, runValidators: true } // Ensures the update returns the updated document
+        );
+
         if (!booking) {
-            return res.status(404).json({ message: 'No booking found' });
-        }
-        if (booking.bookingStatus === 'confirmed') {
-            return res.status(400).json({ message: 'Booking already confirmed' });
+            return res.status(404).json({ message: 'Booking not found' });
         }
 
-        booking.bookingStatus = req.body.status;
-        await booking.save();
-
-        return res.status(200).json({
-            success: true,
-            booking
-        });
-    } catch (error) {
-        return res.status(500).json({ message: 'Error updating booking status', error: error.message });
+        // Return the updated booking
+        res.status(200).json({ booking });
+    } catch (err) {
+        console.error('Error updating booking status:', err);
+        res.status(400).json({ message: 'Error updating booking status', error: err.message });
     }
 };
+
 
 // Total bookings count
 exports.totalBookings = async (req, res) => {

@@ -4,7 +4,7 @@ const bookingSchema = new mongoose.Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
         required: true,
-        ref: 'User'
+        ref: 'User',
     },
     packageId: {
         type: mongoose.Schema.Types.ObjectId,
@@ -23,52 +23,49 @@ const bookingSchema = new mongoose.Schema({
     packagePrice: {
         type: Number,
         required: true,
-        default: 0.0
+        default: 0.0,
     },
     totalPrice: {
         type: Number,
         required: true,
-        default: 0.0
+        default: 0.0,
     },
     bookingStatus: {
         type: String,
         enum: ['confirmed', 'pending', 'canceled', 'processing', 'success'],
-        default: 'pending'
+        default: 'pending',
     },
     createdAt: {
         type: Date,
         default: Date.now,
-    }
+    },
 });
 
-
-bookingSchema.methods.checkout = async function() {
-    this.bookingStatus = 'confirmed';
-    await this.save(); 
-    return this; 
-};
-
+// Method to confirm booking status and return ticket
 bookingSchema.methods.checkout = async function() {
     if (this.bookingStatus === 'confirmed' || this.bookingStatus === 'processing') {
         throw new Error('Booking is already processed or confirmed.');
     }
 
-     this.bookingStatus = 'processing';
+    // Change status to 'processing' and save
+    this.bookingStatus = 'processing';
     await this.save();
-   
+
+    // Create confirmation ticket
     const ticket = {
         message: `You have successfully checked out your booking!`,
         bookingDetails: {
-            name: this.user.name, 
+            name: this.user.name,
             package: this.packageId.name,
             numberOfTravelers: this.numberOfTravelers,
             totalPrice: this.totalPrice,
             travelDate: this.travelDates,
         },
-        confirmationMessage: `Please show this confirmation to confirm that you have successfully checked out.`
+        confirmationMessage: `Please show this confirmation to confirm that you have successfully checked out.`,
     };
 
     return ticket;
 };
 
+// Exporting the model
 module.exports = mongoose.model('Booking', bookingSchema);
