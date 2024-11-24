@@ -170,7 +170,7 @@ const Bookings = () => {
                                                 className="form-control"
                                                 value={booking.travelDates ? booking.travelDates.split('T')[0] : ''}
                                                 onChange={(e) => setBooking({ ...booking, travelDates: e.target.value })}
-                                                required
+                                                disabled
                                             />
                                         </div>
                                         <div className="form-group">
@@ -180,7 +180,7 @@ const Bookings = () => {
                                                 className="form-control"
                                                 value={booking.numberOfTravelers}
                                                 onChange={(e) => setBooking({ ...booking, numberOfTravelers: e.target.value })}
-                                                required
+                                                disabled
                                             />
                                         </div>
                                         <div className="form-group">
