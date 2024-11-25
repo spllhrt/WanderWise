@@ -184,7 +184,7 @@ const AdminDashboard = () => {
         <>
             <MetaData title="Admin Dashboard" />
             <Box sx={{ padding: '2rem' }}>
-                <Typography variant="h4" gutterBottom>Admin Dashboard</Typography>
+                <Typography variant="h4" gutterBottom>WanderWise</Typography>
                 <Typography variant="h6" color="textSecondary">
                     Welcome, {user?.name || 'Admin'} (Role: {user?.role})
                 </Typography>

@@ -1,38 +1,74 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { 
-    Container, Typography, Grid, Button, 
-    TextField, Paper, Box, Checkbox, FormControlLabel 
+import {
+    Container,
+    Typography,
+    Grid,
+    Button,
+    Paper,
+    Box,
+    FormControlLabel,
+    Checkbox,
 } from '@mui/material';
 import { Carousel } from 'react-responsive-carousel';
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 import StarIcon from '@mui/icons-material/Star';
 import StarOutlineIcon from '@mui/icons-material/StarOutline';
+import { Formik, Form, Field, ErrorMessage } from 'formik';
+import * as Yup from 'yup';
+
+
+
+
+<style><ErrorMessage
+    name="travelDates"
+    component="div"
+    style={{ color: 'red', fontSize: '0.875rem', marginTop: '0.25rem' }}
+/>
+<ErrorMessage
+    name="numberOfTravelers"
+    component="div"
+    style={{ color: 'red', fontSize: '0.875rem', marginTop: '0.25rem' }}
+/>
+</style>
+
+
+
+
+
+
+
+
+
+
+
 
 const BookingPage = () => {
     const { packageId, travelDates, numberOfTravelers, userId } = useLocation().state || {};
     const navigate = useNavigate();
 
+
+
+
     const [packageDetails, setPackageDetails] = useState(null);
-    const [bookingData, setBookingData] = useState({
-        packageId,
-        travelDates,
-        numberOfTravelers: numberOfTravelers || 1,
-    });
+    const [reviews, setReviews] = useState([]);
+    const [selectedRatings, setSelectedRatings] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-
-    const [reviews, setReviews] = useState([]);
     const [reviewsLoading, setReviewsLoading] = useState(true);
     const [reviewsError, setReviewsError] = useState(null);
 
-    // Ratings filter state
-    const [selectedRatings, setSelectedRatings] = useState([]);
+
+
 
     useEffect(() => {
         if (!packageId) {
-            return setError('Package ID not provided.');
+            setError('Package ID not provided.');
+            return;
         }
+
+
+
 
         const fetchPackageDetails = async () => {
             try {
@@ -41,15 +77,24 @@ const BookingPage = () => {
                 });
                 const data = await res.json();
 
+
+
+
                 if (res.ok) {
                     setPackageDetails(data.package);
                 } else {
                     setError(data.message || 'Unable to fetch package details.');
                 }
 
+
+
+
                 // Fetch reviews
                 const reviewsRes = await fetch(`http://localhost:5000/api/reviews/package/${packageId}`);
                 const reviewsData = await reviewsRes.json();
+
+
+
 
                 if (reviewsRes.ok) {
                     setReviews(reviewsData.reviews);
@@ -64,26 +109,59 @@ const BookingPage = () => {
             }
         };
 
+
+
+
         fetchPackageDetails();
     }, [packageId]);
 
-    const handleInputChange = (e) => {
-        setBookingData((prev) => ({
-            ...prev,
-            [e.target.name]: e.target.value,
-        }));
+
+
+
+    const handleRatingChange = (rating) => {
+        setSelectedRatings((prevRatings) =>
+            prevRatings.includes(rating)
+                ? prevRatings.filter((r) => r !== rating)
+                : [...prevRatings, rating]
+        );
     };
 
-    const handleBookNow = async () => {
-        const { travelDates, numberOfTravelers } = bookingData;
 
-        if (!travelDates || numberOfTravelers < 1) {
-            return alert('Please provide valid travel dates and number of travelers.');
-        }
+
+
+    const filteredReviews = reviews.filter((review) =>
+        selectedRatings.length === 0 || selectedRatings.includes(review.ratings)
+    );
+
+
+
+
+    const validationSchema = Yup.object().shape({
+        travelDates: Yup.date()
+            .required('Travel dates are required.')
+            .min(new Date(), 'Travel date cannot be in the past.'),
+        numberOfTravelers: Yup.number()
+            .required('Number of travelers is required.')
+            .min(1, 'At least one traveler is required.'),
+    });
+   
+
+
+
+
+    const handleBookNow = async (values) => {
+        const { travelDates, numberOfTravelers } = values;
+
+
+
 
         if (!userId) {
-            return alert('User not logged in');
+            alert('User not logged in.');
+            return;
         }
+
+
+
 
         try {
             const res = await fetch('http://localhost:5000/api/booking/new', {
@@ -101,7 +179,13 @@ const BookingPage = () => {
                 }),
             });
 
+
+
+
             const data = await res.json();
+
+
+
 
             if (res.ok) {
                 alert('Booking successful');
@@ -114,23 +198,15 @@ const BookingPage = () => {
         }
     };
 
-    // Handle ratings filter change
-    const handleRatingChange = (rating) => {
-        setSelectedRatings((prevRatings) =>
-            prevRatings.includes(rating)
-                ? prevRatings.filter((r) => r !== rating)
-                : [...prevRatings, rating]
-        );
-    };
 
-    // Filter reviews based on selected ratings
-    const filteredReviews = reviews.filter((review) =>
-        selectedRatings.length === 0 || selectedRatings.includes(review.ratings)
-    );
+
 
     if (loading) {
         return <p>Loading package details...</p>;
     }
+
+
+
 
     if (error) {
         return (
@@ -143,11 +219,16 @@ const BookingPage = () => {
         );
     }
 
-    const totalPrice = packageDetails?.price * bookingData.numberOfTravelers;
+
+
+
+    const totalPrice = packageDetails?.price * 1;
+
+
+
 
     return (
-        <Container sx={{ padding: { xs: '0 16px', sm: '0 24px', md: '0 32px' } }}>
-            {/* Header Section */}
+        <Container>
             <Box sx={{ textAlign: 'center', marginBottom: 3 }}>
                 <Typography variant="h3" gutterBottom>
                     {packageDetails?.name}
@@ -157,7 +238,9 @@ const BookingPage = () => {
                 </Typography>
             </Box>
 
-            {/* Details and Form Section */}
+
+
+
             <Grid container spacing={4}>
                 <Grid item xs={12} md={6}>
                     <Carousel>
@@ -173,6 +256,9 @@ const BookingPage = () => {
                     </Carousel>
                 </Grid>
 
+
+
+
                 <Grid item xs={12} md={6}>
                     <Paper elevation={3} sx={{ padding: 3, marginBottom: 3 }}>
                         <Typography variant="h5">
@@ -183,43 +269,56 @@ const BookingPage = () => {
                         </Typography>
                     </Paper>
 
-                    <Grid container spacing={2}>
-                        <Grid item xs={12} sm={6}>
-                            <TextField
-                                label="Travel Dates"
-                                type="date"
-                                name="travelDates"
-                                value={bookingData.travelDates}
-                                onChange={handleInputChange}
-                                fullWidth
-                                InputLabelProps={{ shrink: true }}
-                            />
-                        </Grid>
-                        <Grid item xs={12} sm={6}>
-                            <TextField
-                                label="Number of Travelers"
-                                type="number"
-                                name="numberOfTravelers"
-                                min="1"
-                                value={bookingData.numberOfTravelers}
-                                onChange={handleInputChange}
-                                fullWidth
-                            />
-                        </Grid>
-                    </Grid>
 
-                    <Box sx={{ marginTop: 3 }}>
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            fullWidth
-                            onClick={handleBookNow}
-                        >
-                            Book Now
-                        </Button>
-                    </Box>
+
+
+                    <Formik
+                        initialValues={{
+                            travelDates: travelDates || '',
+                            numberOfTravelers: numberOfTravelers || 1,
+                        }}
+                        validationSchema={validationSchema}
+                        onSubmit={(values) => handleBookNow(values)}
+                    >
+                        {({ handleSubmit }) => (
+                            <Form onSubmit={handleSubmit}>
+                                <Grid container spacing={2}>
+                                    <Grid item xs={12} sm={6}>
+                                        <Field
+                                            as="input"
+                                            type="date"
+                                            name="travelDates"
+                                            className="form-control"
+                                        />
+                                        <ErrorMessage name="travelDates" component="div" className="error-message" />
+                                    </Grid>
+                                    <Grid item xs={12} sm={6}>
+                                        <Field
+                                            as="input"
+                                            type="number"
+                                            name="numberOfTravelers"
+                                            min="1"
+                                            className="form-control"
+                                        />
+                                        <ErrorMessage name="numberOfTravelers" component="div" className="error-message" />
+                                    </Grid>
+                                </Grid>
+                                <Box sx={{ marginTop: 3 }}>
+                                    <Button
+                                        type="submit"
+                                        variant="contained"
+                                        color="primary"
+                                        fullWidth
+                                    >
+                                        Book Now
+                                    </Button>
+                                </Box>
+                            </Form>
+                        )}
+                    </Formik>
                 </Grid>
             </Grid>
+
 
             {/* Additional Information */}
             <Box sx={{ marginTop: 4 }}>
@@ -257,7 +356,6 @@ const BookingPage = () => {
                 </Paper>
             </Box>
 
-            {/* Ratings Filter Section */}
             <Box sx={{ marginTop: 4 }}>
                 <Typography variant="h6" gutterBottom>
                     Filter Reviews by Rating
@@ -277,7 +375,9 @@ const BookingPage = () => {
                 ))}
             </Box>
 
-            {/* Reviews Section */}
+
+
+
             <Box sx={{ marginTop: 4 }}>
                 <Typography variant="h6" gutterBottom>
                     Reviews
@@ -290,11 +390,7 @@ const BookingPage = () => {
                     <Typography>No reviews found for this package.</Typography>
                 ) : (
                     filteredReviews.map((review, idx) => (
-                        <Paper
-                            key={idx}
-                            elevation={2}
-                            sx={{ padding: 3, marginBottom: 2 }}
-                        >
+                        <Paper key={idx} elevation={2} sx={{ padding: 3, marginBottom: 2 }}>
                             <Typography variant="body1">
                                 <strong>{review.userID?.name || 'Anonymous'}</strong>
                             </Typography>
@@ -320,4 +416,9 @@ const BookingPage = () => {
     );
 };
 
+
+
+
 export default BookingPage;
+
+

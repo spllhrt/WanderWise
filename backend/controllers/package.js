@@ -6,24 +6,45 @@ const APIFeatures = require('../utils/apiFeatures');
 // Controller for fetching packages
 exports.getPackages = async (req, res) => {
     try {
-        const resPerPage = 4;
-        const apiFeatures = new APIFeatures(Package.find(), req.query)
-            .search()
-            .filter()
-            .pagination(resPerPage);
+        const { page = 1, limit = 6, category } = req.query;  // Get page and limit from query params
+        const skip = (page - 1) * limit;  // Calculate skip based on the page
 
-        const packages = await apiFeatures.query;
-        const packagesCount = await Package.countDocuments();
+        // Build the query to optionally filter by category
+        const query = category ? { category } : {};
 
-        res.status(200).json({
+        // Fetch the total number of packages that match the query
+        const totalPackages = await Package.countDocuments(query);
+
+        // Calculate the total number of pages
+        const totalPages = Math.ceil(totalPackages / limit);
+
+        // Fetch the packages for the current page with limit and skip
+        const packages = await Package.find(query)
+            .populate('category')  // Populate the category field
+            .skip(skip)            // Skip the number of packages based on pagination
+            .limit(parseInt(limit))  // Limit the number of packages per page
+            .exec();
+
+        // If no packages are found
+        if (!packages.length) {
+            return res.status(404).json({
+                success: false,
+                message: 'Packages not found',
+            });
+        }
+
+        // Return the packages along with the totalPages
+        return res.status(200).json({
             success: true,
             packages,
-            resPerPage,
-            packagesCount
+            totalPages,
         });
     } catch (error) {
-        console.error("Error fetching packages:", error); // Detailed error logging
-        res.status(500).json({ message: 'Internal Server Error' });
+        console.error('Error fetching packages:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Server error',
+        });
     }
 };
 

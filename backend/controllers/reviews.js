@@ -4,7 +4,7 @@ const BadWords = require('bad-words'); // Bad words filter
 const filter = new BadWords();
 
 // Add custom bad words to the filter
-filter.addWords("Gago", "g4g0", "g@go", "Tanga", "t@ng@", "Putang Ina","tangina", "pUtan9 In@", "Bobo", "b0b0", "Punyeta", "bw!s1t", "Landi", "Leche", "Salbahe", "Kupal", "Hudas", "Pangit", "T*ngina", "Baho", "Siraulo", "Abnoy", "Bastos", "Kalbo", "Chupa", "Matigas ang ulo", "Gaga", "Mamatay ka", "T*ngina mo", "Halimaw", "Pota", "Yawa", "Panget", "Bangkang", "Sablay", "Yuck", "Masahe", "ahole", "fuck", "shit", "asshole", "bitch", "slut", "dick", "cunt");
+filter.addWords("Gago", "g4g0", "g@go", "Tanga", "t@ng@", "Putang Ina","tangina", "sarap", "pUtan9 In@", "Bobo", "b0b0", "Punyeta", "bw!s1t", "Landi", "Leche", "Salbahe", "Kupal", "Hudas", "Pangit", "T*ngina", "Baho", "Siraulo", "Abnoy", "Bastos", "Kalbo", "Chupa", "Matigas ang ulo", "Gaga", "Mamatay ka", "T*ngina mo", "Halimaw", "Pota", "Yawa", "Panget", "Bangkang", "Sablay", "Yuck", "Masahe", "ahole", "fuck", "shit", "asshole", "bitch", "slut", "dick", "cunt");
 
 // Function to preprocess and filter comments
 const preComment = comment => comment.replace(/[.,!?;()&%$#@]/g, '').toLowerCase();
