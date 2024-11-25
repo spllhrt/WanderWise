@@ -6,6 +6,9 @@ import 'react-toastify/dist/ReactToastify.css';
 import MUIDataTable from "mui-datatables";
 import { getUser, logout } from '../../utils/helpers';
 import MetaData from '../Layout/MetaData';
+import { Formik, Form, Field, ErrorMessage } from 'formik';
+import * as Yup from 'yup';
+
 
 const Packages = () => {
     const [packages, setPackages] = useState([]);
@@ -26,6 +29,7 @@ const Packages = () => {
     const navigate = useNavigate();
     const user = getUser();
 
+
     useEffect(() => {
         const user = getUser(); // Fetch user data here
         if (!user || user.role !== 'admin') {
@@ -39,7 +43,7 @@ const Packages = () => {
                 toast.error('Error loading packages');
             }
         };
-    
+   
         const fetchCategories = async () => {
             try {
                 const res = await axios.get('http://localhost:5000/api/admin/categories');
@@ -48,34 +52,56 @@ const Packages = () => {
                 toast.error('Error loading categories');
             }
         };
-    
+   
         fetchPackages();
         fetchCategories();
     }, [navigate]); // Remove `user` from dependencies, since it's already fetched inside the useEffect
-    
 
-    const handleNewPackage = async (e) => {
-        e.preventDefault();
+
+    // Validation schema with Yup
+    const validationSchema = Yup.object({
+        name: Yup.string().min(3, 'Must be at least 3 characters').required('Package name is required'),
+        description: Yup.string().min(3, 'Must be at least 3 characters').required('Description is required'),
+        price: Yup.number().required('Price is required').positive('Price must be positive'),
+        features: Yup.string().min(3, 'Must be at least 3 characters').required('Features are required'),
+        category: Yup.string().required('Category is required'),
+        itinerary: Yup.string().min(3, 'Must be at least 3 characters').required('Itinerary is required'),
+    });
+
+
+    const handleNewPackage = async (values) => {
         const formData = new FormData();
-        formData.append('name', newPackage.name);
-        formData.append('description', newPackage.description);
-        formData.append('price', newPackage.price);
-        formData.append('features', newPackage.features);
+        formData.append('name', values.name);
+        formData.append('description', values.description);
+        formData.append('price', values.price);
+        formData.append('features', values.features);
         formData.append('status', newPackage.status);
-        formData.append('category', newPackage.category); // Send the category _id
-        formData.append('itinerary', newPackage.itinerary); // Send itinerary field
-
+        formData.append('category', values.category); // Send the category _id
+        formData.append('itinerary', values.itinerary); // Send itinerary field
+   
         newPackage.images.forEach((image) => {
             formData.append('images', image);
         });
-
+   
         try {
             const res = await axios.post('http://localhost:5000/api/admin/package/new', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
             });
-            setPackages([...packages, res.data.package]);
+           
+            // Directly update the state with the newly created package
+            setPackages(prevPackages => [...prevPackages, res.data.package]);
+   
+            // Update categories if necessary (e.g., new category added)
+            const updatedCategories = [...categories];
+            if (!updatedCategories.find(cat => cat._id === values.category)) {
+                // Fetch the new category if it doesn't exist in the list
+                const resCategory = await axios.get(`http://localhost:5000/api/admin/category/${values.category}`);
+                updatedCategories.push(resCategory.data.category);
+            }
+            setCategories(updatedCategories);
+   
             toast.success('Package created successfully');
             setNewPackage({
                 name: '',
@@ -92,32 +118,44 @@ const Packages = () => {
             toast.error('Error creating package');
         }
     };
-
-    const handleUpdatePackage = async (e) => {
-        e.preventDefault();
-
+   
+    const handleUpdatePackage = async (values) => {
         const formData = new FormData();
-        formData.append('name', selectedPackage.name);
-        formData.append('description', selectedPackage.description);
-        formData.append('price', selectedPackage.price);
-        formData.append('features', selectedPackage.features);
+        formData.append('name', values.name);
+        formData.append('description', values.description);
+        formData.append('price', values.price);
+        formData.append('features', values.features);
         formData.append('status', selectedPackage.status);
-        formData.append('category', selectedPackage.category); // Send the category _id
-        formData.append('itinerary', selectedPackage.itinerary); // Send itinerary field
-
+        formData.append('category', values.category); // Send the category _id
+        formData.append('itinerary', values.itinerary); // Send itinerary field
+   
         if (selectedPackage.images) {
             selectedPackage.images.forEach((image) => {
                 formData.append('images', image);
             });
         }
-
+   
         try {
             const res = await axios.put(`http://localhost:5000/api/admin/package/${selectedPackage._id}`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
             });
-            setPackages(packages.map(pkg => (pkg._id === res.data.package._id ? res.data.package : pkg)));
+   
+            // Directly update the state with the updated package
+            setPackages(prevPackages =>
+                prevPackages.map(pkg => (pkg._id === res.data.package._id ? res.data.package : pkg))
+            );
+   
+            // Update categories if necessary (e.g., new category added or updated)
+            const updatedCategories = [...categories];
+            if (!updatedCategories.find(cat => cat._id === values.category)) {
+                // Fetch the updated category if not already in the list
+                const resCategory = await axios.get(`http://localhost:5000/api/admin/category/${values.category}`);
+                updatedCategories.push(resCategory.data.category);
+            }
+            setCategories(updatedCategories);
+   
             toast.success('Package updated successfully');
             setUpdateMode(false);
             setSelectedPackage({});
@@ -126,6 +164,9 @@ const Packages = () => {
             toast.error('Error updating package');
         }
     };
+   
+   
+
 
     const handleEditPackage = (id) => {
         const selectedPkg = packages.find(pkg => pkg._id === id);
@@ -135,6 +176,7 @@ const Packages = () => {
             setModalShow(true);
         }
     };
+
 
     const handleDeletePackage = async (rowsDeleted) => {
         try {
@@ -147,10 +189,11 @@ const Packages = () => {
         }
     };
 
+
     const columns = [
         { name: "name", label: "Package Name" },
-        { 
-            name: "images", 
+        {
+            name: "images",
             label: "Images",
             options: {
                 customBodyRender: (images) => (
@@ -163,7 +206,7 @@ const Packages = () => {
         { name: "description", label: "Description" },
         { name: "price", label: "Price" },
         {
-            name: "status", 
+            name: "status",
             label: "Status",
             options: {
                 customBodyRender: (status) => <span>{status}</span>
@@ -178,13 +221,13 @@ const Packages = () => {
                 }
             }
         },
-        
+       
         {
             name: "edit",
             label: "Edit",
             options: {
                 customBodyRender: (_, tableMeta) => (
-                    <button 
+                    <button
                         className="btn btn-primary btn-sm"
                         onClick={() => handleEditPackage(packages[tableMeta.rowIndex]._id)}
                     >
@@ -195,6 +238,7 @@ const Packages = () => {
         }
     ];
 
+
     const options = {
         filter: false,
         selectableRows: "multiple",
@@ -203,6 +247,7 @@ const Packages = () => {
         },
         onRowsDelete: handleDeletePackage,
     };
+
 
     return (
         <>
@@ -219,6 +264,7 @@ const Packages = () => {
                     options={options}
                 />
 
+
                 {/* Modal for Add/Edit Package */}
                 {modalShow && (
                     <div className={`modal fade show`} style={{ display: 'block' }} tabIndex="-1">
@@ -230,81 +276,85 @@ const Packages = () => {
                                         <span aria-hidden="true">&times;</span>
                                     </button>
                                 </div>
-                                <form onSubmit={updateMode ? handleUpdatePackage : handleNewPackage}>
-                                    <div className="modal-body">
-                                        <div className="form-group">
-                                            <input
-                                                type="text"
-                                                className="form-control"
-                                                value={updateMode ? selectedPackage.name : newPackage.name}
-                                                onChange={(e) => updateMode ? setSelectedPackage({ ...selectedPackage, name: e.target.value }) : setNewPackage({ ...newPackage, name: e.target.value })}
-                                                placeholder="Package Name"
-                                                required
-                                            />
-                                        </div>
-                                        <div className="form-group">
-                                            <textarea
-                                                className="form-control"
-                                                value={updateMode ? selectedPackage.description : newPackage.description}
-                                                onChange={(e) => updateMode ? setSelectedPackage({ ...selectedPackage, description: e.target.value }) : setNewPackage({ ...newPackage, description: e.target.value })}
-                                                placeholder="Description"
-                                                required
-                                            />
-                                        </div>
-                                        <div className="form-group">
-                                            <input
-                                                type="number"
-                                                className="form-control"
-                                                value={updateMode ? selectedPackage.price : newPackage.price}
-                                                onChange={(e) => updateMode ? setSelectedPackage({ ...selectedPackage, price: e.target.value }) : setNewPackage({ ...newPackage, price: e.target.value })}
-                                                placeholder="Price"
-                                                required
-                                            />
-                                        </div>
-                                        <div className="form-group">
-                                            <textarea
-                                                className="form-control"
-                                                value={updateMode ? selectedPackage.features : newPackage.features}
-                                                onChange={(e) => updateMode ? setSelectedPackage({ ...selectedPackage, features: e.target.value }) : setNewPackage({ ...newPackage, features: e.target.value })}
-                                                placeholder="Features"
-                                                required
-                                            />
-                                        </div>
-                                        <div className="form-group">
-                                            <input
-                                                type="file"
-                                                className="form-control"
-                                                multiple
-                                                onChange={(e) => updateMode ? setSelectedPackage({ ...selectedPackage, images: [...selectedPackage.images, ...e.target.files] }) : setNewPackage({ ...newPackage, images: [...newPackage.images, ...e.target.files] })}
-                                            />
-                                        </div>
-                                        <div className="form-group">
-                                            <select
-                                                className="form-control"
-                                                value={updateMode ? selectedPackage.category : newPackage.category}
-                                                onChange={(e) => updateMode ? setSelectedPackage({ ...selectedPackage, category: e.target.value }) : setNewPackage({ ...newPackage, category: e.target.value })}
-                                            >
-                                                <option value="">Select Category</option>
-                                                {categories.map((category) => (
-                                                    <option key={category._id} value={category._id}>{category.name}</option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                        <div className="form-group">
-                                            <textarea
-                                                className="form-control"
-                                                value={updateMode ? selectedPackage.itinerary : newPackage.itinerary}
-                                                onChange={(e) => updateMode ? setSelectedPackage({ ...selectedPackage, itinerary: e.target.value }) : setNewPackage({ ...newPackage, itinerary: e.target.value })}
-                                                placeholder="Itinerary"
-                                                required
-                                            />
-                                        </div>
-                                    </div>
-                                    <div className="modal-footer">
-                                        <button type="button" className="btn btn-secondary" onClick={() => setModalShow(false)}>Close</button>
-                                        <button type="submit" className="btn btn-primary">{updateMode ? 'Update' : 'Create'} Package</button>
-                                    </div>
-                                </form>
+                                <Formik
+                                    initialValues={updateMode ? selectedPackage : newPackage}
+                                    validationSchema={validationSchema}
+                                    onSubmit={updateMode ? handleUpdatePackage : handleNewPackage}
+                                >
+                                    {() => (
+                                        <Form encType="multipart/form-data">
+                                            <div className="modal-body">
+                                                <div className="form-group">
+                                                    <label htmlFor="name">Package Name</label>
+                                                    <Field name="name" type="text" className="form-control" />
+                                                    <ErrorMessage name="name" component="div" className="text-danger" />
+                                                </div>
+
+
+                                                <div className="form-group">
+                                                    <label htmlFor="description">Description</label>
+                                                    <Field name="description" type="text" className="form-control" />
+                                                    <ErrorMessage name="description" component="div" className="text-danger" />
+                                                </div>
+
+
+                                                <div className="form-group">
+                                                    <label htmlFor="price">Price</label>
+                                                    <Field name="price" type="number" className="form-control" />
+                                                    <ErrorMessage name="price" component="div" className="text-danger" />
+                                                </div>
+
+
+                                                <div className="form-group">
+                                                    <label htmlFor="features">Features</label>
+                                                    <Field name="features" type="text" className="form-control" />
+                                                    <ErrorMessage name="features" component="div" className="text-danger" />
+                                                </div>
+
+
+                                                <div className="form-group">
+                                                    <label htmlFor="itinerary">Itinerary</label>
+                                                    <Field name="itinerary" type="text" className="form-control" />
+                                                    <ErrorMessage name="itinerary" component="div" className="text-danger" />
+                                                </div>
+
+
+                                                <div className="form-group">
+                                                    <label htmlFor="category">Category</label>
+                                                    <Field as="select" name="category" className="form-control">
+                                                        <option value="">Select Category</option>
+                                                        {categories.map((category) => (
+                                                            <option key={category._id} value={category._id}>
+                                                                {category.name}
+                                                            </option>
+                                                        ))}
+                                                    </Field>
+                                                    <ErrorMessage name="category" component="div" className="text-danger" />
+                                                </div>
+
+
+                                                <div className="form-group">
+                                                    <label htmlFor="images">Images</label>
+                                                    <input
+                                                        name="images"
+                                                        type="file"
+                                                        multiple
+                                                        className="form-control-file"
+                                                        onChange={(e) => setNewPackage({ ...newPackage, images: Array.from(e.target.files) })}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="modal-footer">
+                                                <button type="button" className="btn btn-secondary" onClick={() => setModalShow(false)}>
+                                                    Close
+                                                </button>
+                                                <button type="submit" className="btn btn-primary">
+                                                    {updateMode ? 'Update' : 'Save'}
+                                                </button>
+                                            </div>
+                                        </Form>
+                                    )}
+                                </Formik>
                             </div>
                         </div>
                     </div>
@@ -313,5 +363,6 @@ const Packages = () => {
         </>
     );
 };
+
 
 export default Packages;

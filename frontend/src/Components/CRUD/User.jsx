@@ -10,7 +10,6 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 const Users = () => {
     const [users, setUsers] = useState([]);
     const [user, setUser] = useState({});
-    const [newUser, setNewUser] = useState({ name: '', email: '', role: '', status: 'active' });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [modalShow, setModalShow] = useState(false);
@@ -31,19 +30,6 @@ const Users = () => {
 
         fetchUsers();
     }, []);
-
-    const handleNewUser = async (e) => {
-        e.preventDefault();
-        try {
-            const res = await axios.post('http://localhost:5000/api/auth/register', newUser);
-            setUsers([...users, res.data.user]);
-            toast.success('User created successfully');
-            setNewUser({ name: '', email: '', role: '', status: 'active' });
-            setModalShow(false);
-        } catch (err) {
-            setError('Error creating user');
-        }
-    };
 
     const handleUpdateUser = async (e) => {
         e.preventDefault();
@@ -108,9 +94,6 @@ const Users = () => {
             <MetaData title="Users" />
             <div className="container mt-5">
                 <h1 className="mb-4">Users</h1>
-                <button className="btn btn-primary mb-4" onClick={() => { setNewUser({ name: '', email: '', role: '', status: 'active' }); setUpdateMode(false); setViewMode(false); setModalShow(true); }}>
-                    Add New User
-                </button>
                 {error && <div className="alert alert-danger">{error}</div>}
                 <MUIDataTable
                     title={"Users List"}
@@ -124,17 +107,17 @@ const Users = () => {
                     options={options}
                 />
 
-                {/* Modal for Add/Edit/View User */}
+                {/* Modal for Edit/View User */}
                 <div className={`modal fade ${modalShow ? 'show' : ''}`} style={{ display: modalShow ? 'block' : 'none' }} tabIndex="-1" role="dialog" aria-labelledby="userModalLabel" aria-hidden={!modalShow}>
                     <div className="modal-dialog" role="document">
                         <div className="modal-content">
                             <div className="modal-header">
-                                <h5 className="modal-title" id="userModalLabel">{viewMode ? 'View User' : (updateMode ? 'Edit User' : 'Add New User')}</h5>
+                                <h5 className="modal-title" id="userModalLabel">{viewMode ? 'View User' : 'Edit User'}</h5>
                                 <button type="button" className="close" onClick={() => setModalShow(false)} aria-label="Close">
                                     <span aria-hidden="true">&times;</span>
                                 </button>
                             </div>
-                            <form onSubmit={updateMode ? handleUpdateUser : handleNewUser}>
+                            <form onSubmit={handleUpdateUser}>
                                 <div className="modal-body">
                                     {viewMode ? (
                                         <>
@@ -158,16 +141,16 @@ const Users = () => {
                                     ) : (
                                         <>
                                             <div className="form-group">
-                                                <input type="text" className="form-control" value={updateMode ? user.name : newUser.name} onChange={(e) => updateMode ? setUser({ ...user, name: e.target.value }) : setNewUser({ ...newUser, name: e.target.value })} placeholder="Name" required />
+                                                <input type="text" className="form-control" value={user.name} onChange={(e) => setUser({ ...user, name: e.target.value })} placeholder="Name" required />
                                             </div>
                                             <div className="form-group">
-                                                <input type="email" className="form-control" value={updateMode ? user.email : newUser.email} onChange={(e) => updateMode ? setUser({ ...user, email: e.target.value }) : setNewUser({ ...newUser, email: e.target.value })} placeholder="Email" required />
+                                                <input type="email" className="form-control" value={user.email} onChange={(e) => setUser({ ...user, email: e.target.value })} placeholder="Email" required />
                                             </div>
                                             <div className="form-group">
-                                                <input type="text" className="form-control" value={updateMode ? user.role : newUser.role} onChange={(e) => updateMode ? setUser({ ...user, role: e.target.value }) : setNewUser({ ...newUser, role: e.target.value })} placeholder="Role" required />
+                                                <input type="text" className="form-control" value={user.role} onChange={(e) => setUser({ ...user, role: e.target.value })} placeholder="Role" required />
                                             </div>
                                             <div className="form-group">
-                                                <select className="form-control" value={updateMode ? user.status : newUser.status} onChange={(e) => updateMode ? setUser({ ...user, status: e.target.value }) : setNewUser({ ...newUser, status: e.target.value })} required>
+                                                <select className="form-control" value={user.status} onChange={(e) => setUser({ ...user, status: e.target.value })} required>
                                                     <option value="active">Active</option>
                                                     <option value="inactive">Inactive</option>
                                                 </select>
@@ -177,7 +160,7 @@ const Users = () => {
                                 </div>
                                 <div className="modal-footer">
                                     <button type="button" className="btn btn-secondary" onClick={() => setModalShow(false)}>Close</button>
-                                    {!viewMode && <button type="submit" className="btn btn-primary">{updateMode ? 'Update User' : 'Add User'}</button>}
+                                    {!viewMode && <button type="submit" className="btn btn-primary">Update User</button>}
                                 </div>
                             </form>
                         </div>

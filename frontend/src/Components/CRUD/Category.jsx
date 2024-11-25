@@ -5,6 +5,9 @@ import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import MUIDataTable from "mui-datatables";
 import MetaData from '../Layout/MetaData';
+import { Formik, Form, Field, ErrorMessage } from 'formik';
+import * as Yup from 'yup';
+
 
 const Categories = () => {
     const [categories, setCategories] = useState([]);
@@ -16,6 +19,7 @@ const Categories = () => {
     const [loggedUser, setLoggedUser] = useState(null); // State for logged-in user
     const navigate = useNavigate();
     const { id } = useParams();
+
 
     useEffect(() => {
         // Fetch categories
@@ -29,6 +33,7 @@ const Categories = () => {
         };
         fetchCategories();
 
+
         // Fetch logged-in user details (Example: from localStorage, session, or an API)
         const user = JSON.parse(localStorage.getItem('loggedUser')); // Assuming logged-in user is stored in localStorage
         if (user) {
@@ -36,11 +41,11 @@ const Categories = () => {
         }
     }, []);
 
-    const handleNewCategory = async (e) => {
-        e.preventDefault();
+
+    const handleNewCategory = async (values) => {
         const formData = new FormData();
-        formData.append('name', newCategory.name);
-        newCategory.images.forEach((image) => {
+        formData.append('name', values.name);
+        values.images.forEach((image) => {
             formData.append('images', image);
         });
         try {
@@ -58,17 +63,17 @@ const Categories = () => {
         }
     };
 
-    const handleUpdateCategory = async (e) => {
-        e.preventDefault();
+
+    const handleUpdateCategory = async (values) => {
         const formData = new FormData();
-        formData.append('name', category.name);
-        
-        if (category.images) {
-            category.images.forEach((image) => {
+        formData.append('name', values.name);
+       
+        if (values.images) {
+            values.images.forEach((image) => {
                 formData.append('images', image);
             });
         }
-        
+       
         try {
             const res = await axios.put(`http://localhost:5000/api/admin/category/${category._id}`, formData, {
                 headers: {
@@ -85,23 +90,25 @@ const Categories = () => {
         }
     };
 
+
     const handleDeleteCategories = async (rowsDeleted) => {
         try {
             // Get the IDs of the selected rows from the rowsDeleted parameter
             const idsToDelete = rowsDeleted.data.map(row => categories[row.dataIndex]._id);
-            
+           
             // Delete categories from the backend
             await Promise.all(idsToDelete.map(id => axios.delete(`http://localhost:5000/api/admin/category/${id}`)));
-            
+           
             // Update the state by filtering out the deleted categories
             setCategories(categories.filter(cat => !idsToDelete.includes(cat._id)));
-            
+           
             // Show success toast
             toast.success('Selected categories deleted successfully');
         } catch (err) {
             toast.error('Error deleting categories');
         }
     };
+
 
     const handleEditCategory = (id) => {
         const selectedCategory = categories.find(cat => cat._id === id);
@@ -112,10 +119,11 @@ const Categories = () => {
         }
     };
 
+
     const columns = [
         { name: "name", label: "Category Name" },
-        { 
-            name: "images", 
+        {
+            name: "images",
             label: "Images",
             options: {
                 customBodyRender: (images) => (
@@ -130,7 +138,7 @@ const Categories = () => {
             label: "Edit",
             options: {
                 customBodyRender: (_, tableMeta) => (
-                    <button 
+                    <button
                         className="btn btn-primary btn-sm"
                         onClick={() => handleEditCategory(categories[tableMeta.rowIndex]._id)}
                     >
@@ -141,6 +149,7 @@ const Categories = () => {
         }
     ];
 
+
     const options = {
         filter: false,
         selectableRows: "multiple",
@@ -150,6 +159,15 @@ const Categories = () => {
         },
         onRowsDelete: handleDeleteCategories,
     };
+
+
+    const validationSchema = Yup.object({
+        name: Yup.string()
+            .min(3, 'Category name must be at least 3 characters long')
+            .required('Category name is required'),
+        images: Yup.array().required('At least one image is required'),
+    });
+
 
     return (
         <>
@@ -171,6 +189,7 @@ const Categories = () => {
                     options={options}
                 />
 
+
                 {/* Modal for Add/Edit Category */}
                 {modalShow && (
                     <div className={`modal fade show`} style={{ display: 'block' }} tabIndex="-1">
@@ -182,41 +201,48 @@ const Categories = () => {
                                         <span aria-hidden="true">&times;</span>
                                     </button>
                                 </div>
-                                <form onSubmit={updateMode ? handleUpdateCategory : handleNewCategory}>
-                                    <div className="modal-body">
-                                        <div className="form-group">
-                                            <input
-                                                type="text"
-                                                className="form-control"
-                                                value={updateMode ? category.name : newCategory.name}
-                                                onChange={(e) => updateMode ? setCategory({ ...category, name: e.target.value }) : setNewCategory({ ...newCategory, name: e.target.value })}
-                                                placeholder="Category Name"
-                                                required
-                                            />
-                                        </div>
-                                        <div className="form-group">
-                                            <input
-                                                type="file"
-                                                className="form-control-file"
-                                                onChange={(e) => {
-                                                    const files = Array.from(e.target.files);
-                                                    if (updateMode) {
-                                                        setCategory({ ...category, images: files });
-                                                    } else {
-                                                        setNewCategory({ ...newCategory, images: files });
-                                                    }
-                                                }}
-                                                multiple
-                                            />
-                                        </div>
-                                    </div>
-                                    <div className="modal-footer">
-                                        <button type="button" className="btn btn-secondary" onClick={() => setModalShow(false)}>Close</button>
-                                        <button type="submit" className="btn btn-primary">
-                                            {updateMode ? 'Update Category' : 'Add Category'}
-                                        </button>
-                                    </div>
-                                </form>
+                                <Formik
+                                    initialValues={{
+                                        name: updateMode ? category.name : newCategory.name,
+                                        images: updateMode ? category.images : newCategory.images,
+                                    }}
+                                    validationSchema={validationSchema}
+                                    onSubmit={updateMode ? handleUpdateCategory : handleNewCategory}
+                                >
+                                    {({ setFieldValue }) => (
+                                        <Form>
+                                            <div className="modal-body">
+                                                <div className="form-group">
+                                                    <Field
+                                                        type="text"
+                                                        className="form-control"
+                                                        name="name"
+                                                        placeholder="Category Name"
+                                                    />
+                                                    <ErrorMessage name="name" component="div" className="text-danger" />
+                                                </div>
+                                                <div className="form-group">
+                                                    <input
+                                                        type="file"
+                                                        className="form-control-file"
+                                                        onChange={(e) => {
+                                                            const files = Array.from(e.target.files);
+                                                            setFieldValue('images', files);
+                                                        }}
+                                                        multiple
+                                                    />
+                                                    <ErrorMessage name="images" component="div" className="text-danger" />
+                                                </div>
+                                            </div>
+                                            <div className="modal-footer">
+                                                <button type="button" className="btn btn-secondary" onClick={() => setModalShow(false)}>Close</button>
+                                                <button type="submit" className="btn btn-primary">
+                                                    {updateMode ? 'Update Category' : 'Add Category'}
+                                                </button>
+                                            </div>
+                                        </Form>
+                                    )}
+                                </Formik>
                             </div>
                         </div>
                     </div>
@@ -226,4 +252,8 @@ const Categories = () => {
     );
 };
 
+
 export default Categories;
+
+
+
