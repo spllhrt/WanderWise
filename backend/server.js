@@ -22,7 +22,7 @@ const app = express();
 
 
 // MongoDB connection URI
-const uri = 'mongodb+srv://hayet:hayet123@cluster0.4hcp3.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
+const uri = '';
 
 
 mongoose.connect(uri)
